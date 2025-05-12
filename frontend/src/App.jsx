@@ -1,14 +1,22 @@
+// App.jsx
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 
 // Import pages
-import LandingPage from './Pages/Visitor/LandingPage';
 import HomePage from './Pages/Visitor/HomePage';
 import ProjectsPage from './Pages/Visitor/ProjectsPage';
 import AboutPage from './Pages/Visitor/AboutPage';
 import ContactPage from './Pages/Visitor/ContactPage';
 import CustomerLogin from './Pages/Customer/CustomerLogin';
 import CustomerDashBoard from './Pages/Customer/CustomerDashBoard';
+import LandCheckPage from './Pages/Visitor/LandCheckPage';
+import ResultsCalculation from './Pages/Visitor/ResultsCalculation';
+//import StaffDashboard from './Pages/Staff/StaffDashboard';
+import CustomerManager from './Pages/Staff/CustomerManager';
+import InventoryManager from './Pages/Staff/InventoryManager';
+
+// Product pages
+import Agarwood from './Pages/Visitor/Products/Agarwood';
 
 function App() {
   return (
@@ -20,6 +28,14 @@ function App() {
       <Route path="/contact" element={<ContactPage />} />
       <Route path="/customer-login" element={<CustomerLogin />} />
       <Route path="/customer/CustomerDashBoard" element={<CustomerDashBoard />} />
+      <Route path="/try-agarwood" element={<LandCheckPage />} />
+      <Route path="/try-agarwood/results/:landSize" element={<ResultsCalculation />} />
+      <Route path="/staff/customers" element={<CustomerManager />} />
+      <Route path="/staff/inventory" element={<InventoryManager />} />
+
+
+      {/* Product Routes */}
+      <Route path="/products/agarwood" element={<Agarwood />} />
     </Routes>
   );
 }

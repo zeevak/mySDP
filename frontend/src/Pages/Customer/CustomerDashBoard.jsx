@@ -38,63 +38,63 @@ const CustomerDashboard = () => {
   return (
     <div className="flex flex-col min-h-screen">
       <Header />
-      
+
       <main className="flex-grow bg-green-50 py-8">
         <div className="max-w-screen-xl mx-auto px-4">
           {/* Welcome Banner */}
           <div className="bg-gradient-to-r from-green-600 to-emerald-700 text-white p-6 rounded-lg shadow-md mb-8">
-            <h1 className="text-2xl font-bold">Welcome back, {userData?.firstName || 'Valued Customer'}</h1>
+            <h1 className="text-2xl font-bold">Welcome back, {userData?.firstName || userData?.data?.firstName || 'Valued Customer'}</h1>
             <p className="mt-2">Manage your plantation investments and track your returns</p>
           </div>
-          
+
           {/* Dashboard Navigation */}
           <div className="bg-white rounded-lg shadow-md mb-8">
             <div className="flex overflow-x-auto">
-              <button 
+              <button
                 onClick={() => setActiveTab('overview')}
                 className={`px-6 py-3 font-medium text-sm focus:outline-none ${
-                  activeTab === 'overview' 
-                    ? 'text-green-700 border-b-2 border-green-700' 
+                  activeTab === 'overview'
+                    ? 'text-green-700 border-b-2 border-green-700'
                     : 'text-gray-500 hover:text-green-700'
                 }`}
               >
                 Overview
               </button>
-              <button 
+              <button
                 onClick={() => setActiveTab('investments')}
                 className={`px-6 py-3 font-medium text-sm focus:outline-none ${
-                  activeTab === 'investments' 
-                    ? 'text-green-700 border-b-2 border-green-700' 
+                  activeTab === 'investments'
+                    ? 'text-green-700 border-b-2 border-green-700'
                     : 'text-gray-500 hover:text-green-700'
                 }`}
               >
                 My Investments
               </button>
-              <button 
+              <button
                 onClick={() => setActiveTab('returns')}
                 className={`px-6 py-3 font-medium text-sm focus:outline-none ${
-                  activeTab === 'returns' 
-                    ? 'text-green-700 border-b-2 border-green-700' 
+                  activeTab === 'returns'
+                    ? 'text-green-700 border-b-2 border-green-700'
                     : 'text-gray-500 hover:text-green-700'
                 }`}
               >
                 Returns & Profits
               </button>
-              <button 
+              <button
                 onClick={() => setActiveTab('documents')}
                 className={`px-6 py-3 font-medium text-sm focus:outline-none ${
-                  activeTab === 'documents' 
-                    ? 'text-green-700 border-b-2 border-green-700' 
+                  activeTab === 'documents'
+                    ? 'text-green-700 border-b-2 border-green-700'
                     : 'text-gray-500 hover:text-green-700'
                 }`}
               >
                 Documents
               </button>
-              <button 
+              <button
                 onClick={() => setActiveTab('profile')}
                 className={`px-6 py-3 font-medium text-sm focus:outline-none ${
-                  activeTab === 'profile' 
-                    ? 'text-green-700 border-b-2 border-green-700' 
+                  activeTab === 'profile'
+                    ? 'text-green-700 border-b-2 border-green-700'
                     : 'text-gray-500 hover:text-green-700'
                 }`}
               >
@@ -102,7 +102,7 @@ const CustomerDashboard = () => {
               </button>
             </div>
           </div>
-          
+
           {/* Dashboard Content */}
           <div className="grid md:grid-cols-3 gap-6">
             {/* Main Content Area */}
@@ -131,7 +131,7 @@ const CustomerDashboard = () => {
                       </div>
                     </div>
                   </div>
-                  
+
                   {/* Recent Activity */}
                   <div className="bg-white p-6 rounded-lg shadow-md">
                     <h2 className="text-xl font-bold text-green-800 mb-4">Recent Activity</h2>
@@ -177,7 +177,7 @@ const CustomerDashboard = () => {
                   </div>
                 </>
               )}
-              
+
               {activeTab === 'investments' && (
                 <div className="bg-white p-6 rounded-lg shadow-md">
                   <h2 className="text-xl font-bold text-green-800 mb-4">My Investments</h2>
@@ -219,7 +219,7 @@ const CustomerDashboard = () => {
                   </div>
                 </div>
               )}
-              
+
               {activeTab === 'returns' && (
                 <div className="bg-white p-6 rounded-lg shadow-md">
                   <h2 className="text-xl font-bold text-green-800 mb-4">Returns & Profits</h2>
@@ -266,7 +266,7 @@ const CustomerDashboard = () => {
                   </div>
                 </div>
               )}
-              
+
               {activeTab === 'documents' && (
                 <div className="bg-white p-6 rounded-lg shadow-md">
                   <h2 className="text-xl font-bold text-green-800 mb-4">Documents</h2>
@@ -307,7 +307,7 @@ const CustomerDashboard = () => {
                   </div>
                 </div>
               )}
-              
+
               {activeTab === 'profile' && (
                 <div className="bg-white p-6 rounded-lg shadow-md">
                   <h2 className="text-xl font-bold text-green-800 mb-4">Profile Information</h2>
@@ -316,30 +316,58 @@ const CustomerDashboard = () => {
                       <h3 className="text-lg font-semibold text-gray-700 mb-4">Personal Details</h3>
                       <div className="space-y-4">
                         <div>
+                          <label className="block text-sm font-medium text-gray-700">Title</label>
+                          <input type="text" className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500" value={userData?.data?.title || 'Mr/Ms'} readOnly />
+                        </div>
+                        <div>
                           <label className="block text-sm font-medium text-gray-700">Full Name</label>
-                          <input type="text" className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500" value={userData?.firstName + ' ' + userData?.lastName || 'John Doe'} readOnly />
+                          <input type="text" className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500" value={userData?.data?.fullName || 'John Doe'} readOnly />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700">Name with Initials</label>
+                          <input type="text" className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500" value={userData?.data?.nameWithInitials || 'J. Doe'} readOnly />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700">NIC Number</label>
+                          <input type="text" className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500" value={userData?.data?.nicNumber || 'XXXXXXXXXX'} readOnly />
                         </div>
                         <div>
                           <label className="block text-sm font-medium text-gray-700">Email Address</label>
-                          <input type="email" className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500" value={userData?.email || 'john.doe@example.com'} readOnly />
+                          <input type="email" className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500" value={userData?.data?.email || 'john.doe@example.com'} readOnly />
                         </div>
                         <div>
                           <label className="block text-sm font-medium text-gray-700">Phone Number</label>
-                          <input type="tel" className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500" value={userData?.phone || '+94 71 234 5678'} readOnly />
+                          <input type="tel" className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500" value={userData?.data?.phoneNumber1 || '+94 71 234 5678'} readOnly />
                         </div>
                       </div>
                       <button className="mt-4 px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition duration-300">Edit Profile</button>
                     </div>
                     <div>
-                      <h3 className="text-lg font-semibold text-gray-700 mb-4">Security</h3>
+                      <h3 className="text-lg font-semibold text-gray-700 mb-4">Address & Security</h3>
                       <div className="space-y-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700">Address Line 1</label>
+                          <input type="text" className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500" value={userData?.data?.addressLine1 || ''} readOnly />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700">Address Line 2</label>
+                          <input type="text" className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500" value={userData?.data?.addressLine2 || ''} readOnly />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700">City</label>
+                          <input type="text" className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500" value={userData?.data?.city || ''} readOnly />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700">District</label>
+                          <input type="text" className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500" value={userData?.data?.district || ''} readOnly />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700">Province</label>
+                          <input type="text" className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500" value={userData?.data?.province || ''} readOnly />
+                        </div>
                         <div>
                           <label className="block text-sm font-medium text-gray-700">Password</label>
                           <input type="password" className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500" value="********" readOnly />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700">Last Password Change</label>
-                          <input type="text" className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500" value="March 15, 2025" readOnly />
                         </div>
                       </div>
                       <button className="mt-4 px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition duration-300">Change Password</button>
@@ -348,7 +376,7 @@ const CustomerDashboard = () => {
                 </div>
               )}
             </div>
-            
+
             {/* Sidebar */}
             <div className="space-y-6">
               {/* Quick Actions */}
@@ -360,7 +388,7 @@ const CustomerDashboard = () => {
                   <a href="/customer/documents/upload" className="block w-full text-center px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition duration-300">Upload Document</a>
                 </div>
               </div>
-              
+
               {/* Upcoming Events */}
               <div className="bg-white p-6 rounded-lg shadow-md">
                 <h2 className="text-lg font-bold text-green-800 mb-4">Upcoming Events</h2>
@@ -380,7 +408,7 @@ const CustomerDashboard = () => {
                   </div>
                 </div>
               </div>
-              
+
               {/* Support */}
               <div className="bg-white p-6 rounded-lg shadow-md">
                 <h2 className="text-lg font-bold text-green-800 mb-4">Need Help?</h2>
@@ -404,7 +432,7 @@ const CustomerDashboard = () => {
           </div>
         </div>
       </main>
-      
+
       <Footer />
     </div>
   );

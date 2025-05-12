@@ -17,7 +17,7 @@ const HomePage = () => {
               <a href="/products" className="px-8 py-3 bg-white text-green-700 font-semibold rounded-lg hover:bg-gray-100 transition duration-300">Explore Our Produce</a>
             </div>
             <div className="md:w-1/2 md:pl-10">
-              <img src="/images/plantation-landscape.jpg" alt="Susaru Agro Plantation" className="rounded-lg shadow-xl" />
+              <img src="src/assets/plantation-landscape.jpg" alt="Susaru Agro Plantation" className="rounded-lg shadow-xl" />
             </div>
           </div>
         </section>
@@ -96,7 +96,7 @@ const HomePage = () => {
             <h2 className="text-3xl font-bold text-center mb-12 text-green-800">Our Sustainable Approach</h2>
             <div className="grid md:grid-cols-2 gap-8 items-center">
               <div>
-                <img src="/images/sustainable-farming.jpg" alt="Sustainable Farming" className="rounded-lg shadow-lg" />
+                <img src="src\assets\sustainable-farming.jpg" alt="Sustainable Farming" className="rounded-lg shadow-lg h-full object-cover w-full" style={{ maxHeight: '450px' }} />
               </div>
               <div>
                 <div className="mb-6">
@@ -126,7 +126,7 @@ const HomePage = () => {
             <h2 className="text-3xl font-bold text-center mb-12 text-green-800">Our Premium Products</h2>
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
               <div className="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg transition duration-300">
-                <img src="/images/products/tea.jpg" alt="Premium Tea" className="w-full h-48 object-cover" />
+                <img src="/src/assets/tea.jpg" alt="Premium Tea" className="w-full h-48 object-cover" />
                 <div className="p-4">
                   <h3 className="text-lg font-semibold text-green-800">Organic Tea Collection</h3>
                   <p className="text-gray-600 mb-3">White, green, black, and specialty teas from our highland plantations.</p>
@@ -135,7 +135,7 @@ const HomePage = () => {
               </div>
               
               <div className="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg transition duration-300">
-                <img src="/images/products/rubber.jpg" alt="Natural Rubber" className="w-full h-48 object-cover" />
+                <img src="/src/assets/rubber.jpg" alt="Natural Rubber" className="w-full h-48 object-cover" />
                 <div className="p-4">
                   <h3 className="text-lg font-semibold text-green-800">FSC-Certified Rubber</h3>
                   <p className="text-gray-600 mb-3">Sustainable rubber products from our environmentally managed plantations.</p>
@@ -144,7 +144,7 @@ const HomePage = () => {
               </div>
               
               <div className="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg transition duration-300">
-                <img src="/images/products/vanilla.jpg" alt="Vanilla Beans" className="w-full h-48 object-cover" />
+                <img src="/src/assets/vanilla.jpg" alt="Vanilla Beans" className="w-full h-48 object-cover" />
                 <div className="p-4">
                   <h3 className="text-lg font-semibold text-green-800">Premium Vanilla</h3>
                   <p className="text-gray-600 mb-3">High-quality vanilla beans grown in optimal conditions.</p>

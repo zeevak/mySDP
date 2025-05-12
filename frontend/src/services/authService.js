@@ -1,3 +1,4 @@
+/* eslint-disable no-useless-catch */
 // src/services/authService.js
 
 import api from "./api";

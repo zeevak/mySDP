@@ -4,6 +4,7 @@ const { Op } = require("sequelize"); // Ensure Op is imported
 const Customer = require("../models/Customer");
 const Staff = require("../models/Staff");
 const Role = require("../models/Role");
+const CustomerLand = require("../models/CustomerLand");
 require("dotenv").config();
 
 exports.register = async (req, res) => {
@@ -11,7 +12,7 @@ exports.register = async (req, res) => {
   try {
     let customer = await Customer.findOne({ where: { email } });
     if (customer)
-      return res.status(400).json({ 
+      return res.status(400).json({
         success: false,
         error: "Customer already exists"
       });
@@ -60,7 +61,7 @@ exports.customerLogin = async (req, res) => {
   try {
     const customer = await Customer.findOne({ where: { email } });
     if (!customer)
-      return res.status(401).json({ 
+      return res.status(401).json({
         success: false,
         error: "Authentication failed - user not found"
       });
@@ -107,13 +108,13 @@ exports.adminLogin = async (req, res) => {
       include: [{ model: Role }],
     });
     if (!staff)
-      return res.status(401).json({ 
+      return res.status(401).json({
         success: false,
         error: "Authentication failed - user not found"
       });
 
     if (staff.Role.role_name !== "admin")
-      return res.status(403).json({ 
+      return res.status(403).json({
         success: false,
         error: "Not authorized as admin"
       });
@@ -248,6 +249,100 @@ exports.createAdmin = async (req, res) => {
     res.status(500).json({
       success: false,
       error: "Internal server error during admin creation"
+    });
+  }
+};
+
+exports.getCurrentUser = async (req, res) => {
+  try {
+    // Get user ID and role from the JWT token (set by auth middleware)
+    const userId = req.user.id;
+    const userRole = req.user.role;
+
+    if (userRole === 'customer') {
+      // Fetch customer data
+      const customer = await Customer.findByPk(userId, {
+        include: [
+          {
+            model: CustomerLand,
+            as: 'lands'
+          }
+        ],
+        attributes: { exclude: ['password_hash'] } // Don't send password hash
+      });
+
+      if (!customer) {
+        return res.status(404).json({
+          success: false,
+          error: "Customer not found"
+        });
+      }
+
+      // Format the response data
+      const userData = {
+        id: customer.customer_id,
+        title: customer.title,
+        nameWithInitials: customer.name_with_ini,
+        fullName: customer.full_name,
+        firstName: customer.f_name,
+        lastName: customer.l_name,
+        dateOfBirth: customer.date_of_birth,
+        nicNumber: customer.nic_number,
+        addressLine1: customer.add_line_1,
+        addressLine2: customer.add_line_2,
+        addressLine3: customer.add_line_3,
+        city: customer.city,
+        district: customer.district,
+        province: customer.province,
+        phoneNumber1: customer.phone_no_1,
+        phoneNumber2: customer.phone_no_2,
+        email: customer.email,
+        healthInfo: customer.health_info,
+        lands: customer.lands || []
+      };
+
+      return res.json({
+        success: true,
+        data: userData
+      });
+    } else if (userRole === 'admin') {
+      // Fetch staff data
+      const staff = await Staff.findByPk(userId, {
+        include: [{ model: Role }],
+        attributes: { exclude: ['password_hash'] } // Don't send password hash
+      });
+
+      if (!staff) {
+        return res.status(404).json({
+          success: false,
+          error: "Staff member not found"
+        });
+      }
+
+      // Format the response data
+      const userData = {
+        id: staff.staff_id,
+        name: staff.name,
+        username: staff.username,
+        email: staff.email,
+        role: staff.Role ? staff.Role.role_name : null
+      };
+
+      return res.json({
+        success: true,
+        data: userData
+      });
+    } else {
+      return res.status(403).json({
+        success: false,
+        error: "Invalid user role"
+      });
+    }
+  } catch (err) {
+    console.error("Get Current User Error:", err);
+    res.status(500).json({
+      success: false,
+      error: "Internal server error while fetching user data"
     });
   }
 };

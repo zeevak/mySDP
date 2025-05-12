@@ -2,35 +2,11 @@ import React from 'react';
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
-  
+
   return (
     <footer className="bg-green-50 border-t border-green-200 shadow-sm">
       <div className="mx-auto w-full max-w-screen-xl p-4 py-6 lg:py-8">
-        {/* Newsletter Signup - prominent CTA as recommended */}
-        <div className="mb-8 p-6 bg-green-700 rounded-lg text-white">
-          <div className="md:flex md:justify-between md:items-center">
-            <div className="mb-4 md:mb-0 md:w-2/3">
-              <h3 className="text-xl font-bold mb-2">Subscribe to Our Newsletter</h3>
-              <p>Stay updated with our latest plantation news and investment opportunities.</p>
-            </div>
-            <div className="md:w-1/3">
-              <form className="flex">
-                <input 
-                  type="email" 
-                  placeholder="Your email address" 
-                  className="px-4 py-2 w-full rounded-l-md focus:outline-none text-gray-700"
-                />
-                <button 
-                  type="submit" 
-                  className="bg-white text-green-700 font-semibold px-4 py-2 rounded-r-md hover:bg-gray-100 transition duration-300"
-                >
-                  Subscribe
-                </button>
-              </form>
-            </div>
-          </div>
-        </div>
-        
+
         <div className="md:flex md:justify-between">
           <div className="mb-6 md:mb-0 md:w-1/3">
             <a href="/" className="flex items-center">
@@ -41,9 +17,9 @@ const Footer = () => {
             </p>
             <div className="mt-4">
               <h3 className="text-sm font-semibold text-green-800 uppercase mb-3">Contact Us</h3>
-              <p className="text-gray-600 mb-2">42 Temple Road, Kandy, Sri Lanka</p>
-              <p className="text-gray-600 mb-2">info@susaruagro.com</p>
-              <p className="text-gray-600">+94 81 234 5678</p>
+              <p className="text-gray-600 mb-2">No. 66/A, Sri Somananda Mawatha, Horana, Sri Lanka</p>
+              <p className="text-gray-600 mb-2">susaruagro@gmail.com</p>
+              <p className="text-gray-600">+94 70 102 1955</p>
             </div>
           </div>
           <div className="grid grid-cols-2 gap-8 sm:gap-6 sm:grid-cols-3">
@@ -94,7 +70,7 @@ const Footer = () => {
             </div>
           </div>
         </div>
-        
+
         {/* Certifications Section */}
         <div className="mt-8 pt-8 border-t border-green-200">
           <h3 className="text-sm font-semibold text-green-800 uppercase mb-4 text-center">Our Certifications</h3>
@@ -105,9 +81,9 @@ const Footer = () => {
             <img src="/images/certifications/fair-trade.png" alt="Fair Trade" className="h-12" />
           </div>
         </div>
-        
+
         <hr className="my-6 border-green-200 sm:mx-auto lg:my-8" />
-        
+
         <div className="sm:flex sm:items-center sm:justify-between">
           <span className="text-sm text-gray-600 sm:text-center">
             © {currentYear} <a href="/" className="hover:text-green-700">Susaru Agro Plantation</a>. All Rights Reserved.
@@ -129,7 +105,7 @@ const Footer = () => {
             </a>
           </div>
         </div>
-        
+
         {/* Legal Links */}
         <div className="mt-6 text-center text-sm text-gray-500">
           <a href="/privacy" className="hover:text-green-700 mr-4">Privacy Policy</a>

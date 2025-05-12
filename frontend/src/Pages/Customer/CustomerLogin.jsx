@@ -149,7 +149,7 @@ const CustomerLogin = () => {
                 <div className="w-full border-t border-gray-300"></div>
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white text-gray-500">New to Susaru Agro?</span>
+                <span className="px-2 bg-white text-gray-500">Need to beacome a proud Susaru Customer?</span>
               </div>
             </div>
             
@@ -158,7 +158,7 @@ const CustomerLogin = () => {
                 href="/register"
                 className="w-full flex justify-center py-2 px-4 border border-green-600 rounded-md shadow-sm text-sm font-medium text-green-600 bg-white hover:bg-green-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
               >
-                Create an account
+                Contact Us
               </a>
             </div>
           </div>
