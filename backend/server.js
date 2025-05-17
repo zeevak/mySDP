@@ -12,9 +12,11 @@ const io = new Server(server, { cors: { origin: "http://localhost:5173" } });
 app.use(cors());
 app.use(express.json());
 
-app.use("/api/auth", require("./routes/auth"));
-app.use("/api/land", require("./routes/land"));
-app.use("/api/projects", require("./routes/projects"));
+app.use("/api/customer", require("./routes/customerRoutes"));
+app.use("/api/staff", require("./routes/staffRoutes"));
+app.use("/api/land", require("./routes/landRoutes"));
+app.use("/api/project", require("./routes/projectRoutes"));
+app.use("/api/message", require("./routes/messageRoutes"));
 
 io.on("connection", (socket) => {
   console.log("User connected");
@@ -22,6 +24,10 @@ io.on("connection", (socket) => {
     io.emit("notification", { msg: `Project ${data.project_id} updated` });
   });
   socket.on("disconnect", () => console.log("User disconnected"));
+});
+
+app.get("/", (req, res) => {
+  res.send("Backend service is running!");
 });
 
 const PORT = process.env.PORT || 5000;

@@ -5,6 +5,12 @@ const CustomerLand = require('./CustomerLand');
 const VisitorLand = require('./VisitorLand');
 const Role = require('./Role');
 const Staff = require('./Staff');
+const Message = require('./Message');
+const Proposal = require('./Proposal');
+const Payment = require('./Payment');
+const Inventory = require('./Inventory');
+const Notification = require('./Notification');
+const Request = require('./Request');
 
 // Initialize associations
 const models = {
@@ -13,7 +19,13 @@ const models = {
   CustomerLand,
   VisitorLand,
   Role,
-  Staff
+  Staff,
+  Message,
+  Proposal,
+  Payment,
+  Inventory,
+  Notification,
+  Request
 };
 
 // Call associate method if it exists

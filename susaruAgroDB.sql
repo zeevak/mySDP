@@ -31,7 +31,6 @@ CREATE TABLE customer (
     phone_no_1 VARCHAR(12),
     phone_no_2 VARCHAR(12),
     email VARCHAR(255) UNIQUE NOT NULL,
-    health_info TEXT,
     password_hash VARCHAR(255) NOT NULL
 );
 
@@ -49,6 +48,7 @@ CREATE TABLE staff (
     username VARCHAR(255) UNIQUE,
     password_hash VARCHAR(255) NOT NULL,
     email VARCHAR(255) UNIQUE,
+    phone_no VARCHAR(10);
     FOREIGN KEY (role_id) REFERENCES role(role_id) ON DELETE SET NULL
 );
 
@@ -162,21 +162,16 @@ CREATE TABLE message (
     l_name VARCHAR(50) NOT NULL,
     email VARCHAR(255) NOT NULL,
     phone_no VARCHAR(12),
-    interested_in TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    interested_in VARCHAR(50),
+    message_text TEXT NOT NULL, -- Added message content field
+    status VARCHAR(20) DEFAULT 'new', -- Added status field for tracking: 'new', 'in-progress', 'completed' 
+    is_read BOOLEAN DEFAULT FALSE, -- Track if the message has been read by staff
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Insert default roles
-INSERT INTO role (role_name) VALUES ('Admin');
-INSERT INTO role (role_name) VALUES ('Manager');
-INSERT INTO role (role_name) VALUES ('Staff');
+-- Create an index on email for faster lookups
+CREATE INDEX idx_message_email ON message(email);
 
--- Insert default admin user
-INSERT INTO staff (role_id, name, username, password_hash, email)
-VALUES (
-    1,
-    'Admin User',
-    'admin',
-    '$2b$10$1xyNu3r7FO7g5WBQhnIG6.jjD.nY1kshfnhrL2la56qPePhMI6f6y', -- password: admin123
-    'admin@susaruagro.com'
-);
+-- Create an index on created_at for faster sorting
+CREATE INDEX idx_message_created_at ON message(created_at);

@@ -26,7 +26,6 @@ const Customer = sequelize.define(
     phone_no_1: { type: DataTypes.STRING(12) },
     phone_no_2: { type: DataTypes.STRING(12) },
     email: { type: DataTypes.STRING(255), allowNull: false, unique: true },
-    health_info: { type: DataTypes.TEXT },
     password_hash: { type: DataTypes.STRING(255), allowNull: false },
   },
   {

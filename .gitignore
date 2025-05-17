@@ -1,6 +1,7 @@
 # Logs
 logs
-frontend/logs/
+staff-frontend/logs/
+visitor-frontend/logs/
 backend/logs/
 *.log
 npm-debug.log*
@@ -11,20 +12,25 @@ lerna-debug.log*
 
 # Node.js dependencies
 node_modules/
-frontend/node_modules/
+staff-frontend/node_modules/
+visitor-frontend/node_modules/ 
 backend/node_modules/
 
-# Build outputs (frontend)
+# Build outputs
 dist/
 build/
 dist-ssr/
-frontend/dist/
-frontend/build/
-frontend/dist-ssr/
+staff-frontend/dist/
+staff-frontend/build/
+staff-frontend/dist-ssr/
+visitor-frontend/dist/
+visitor-frontend/build/
+visitor-frontend/dist-ssr/
 
 # Environment variables
 .env
-frontend/.env
+staff-frontend/.env
+visitor-frontend/.env
 backend/.env
 *.local
 
