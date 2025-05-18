@@ -4,7 +4,7 @@ const sequelize = require("../config/db");
 const Staff = require("./Staff");
 
 const Project = sequelize.define(
-  "Project",
+  "project",
   {
     project_id: {
       type: DataTypes.INTEGER,

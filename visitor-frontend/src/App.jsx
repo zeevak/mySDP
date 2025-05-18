@@ -23,7 +23,7 @@ function App() {
       <Route path="/projects" element={<ProjectsPage />} />
       <Route path="/about" element={<AboutPage />} />
       <Route path="/contact" element={<ContactPage />} />
-      <Route path="/customer-login" element={<CustomerLogin />} />
+      <Route path="/customer/login" element={<CustomerLogin />} />
       <Route path="/customer/CustomerDashBoard" element={<CustomerDashBoard />} />
       <Route path="/try-agarwood" element={<LandCheckPage />} />
       <Route path="/try-agarwood/results/:landSize" element={<ResultsCalculation />} />

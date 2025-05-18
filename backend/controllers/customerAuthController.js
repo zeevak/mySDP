@@ -21,10 +21,23 @@ require("dotenv").config();
  * @param {Object} res - Express response object
  */
 exports.register = async (req, res) => {
-  // Extract customer details from request body
-  const { full_name, email, password, nic_number } = req.body;
-  
   try {
+    const { full_name, email, password, nic_number } = req.body;
+    
+    // Extract first name and last name from full_name
+    const nameParts = full_name.split(' ');
+    const f_name = nameParts[0];
+    const l_name = nameParts.length > 1 ? nameParts[nameParts.length - 1] : '';
+    
+    // Generate name with initials (e.g., "J. Smith")
+    let name_with_ini = '';
+    if (nameParts.length > 1) {
+      const initials = nameParts.slice(0, -1).map(part => `${part[0]}.`).join(' ');
+      name_with_ini = `${initials} ${l_name}`;
+    } else {
+      name_with_ini = full_name;
+    }
+    
     // Check if customer with this email already exists
     let customer = await Customer.findOne({ where: { email } });
     if (customer)
@@ -40,6 +53,9 @@ exports.register = async (req, res) => {
     // Create new customer record in database
     customer = await Customer.create({
       full_name,
+      name_with_ini,
+      f_name,
+      l_name,
       email,
       password_hash: hashedPassword,
       nic_number,
