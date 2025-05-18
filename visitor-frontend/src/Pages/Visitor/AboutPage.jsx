@@ -7,24 +7,24 @@ const AboutPage = () => {
   const teamMembers = [
     {
       id: 1,
-      name: "Chandana Ranasinghe",
+      name: "Deshabandhu Idippulige",
       role: "Founder & CEO",
       image: "/images/team/chandana.jpg",
-      bio: "Chandana has over 20 years of experience in plantation management and sustainable agriculture."
+      bio: "Deshabandhu has over 20 years of experience in plantation management and sustainable agriculture."
     },
     {
       id: 2,
       name: "Kumari Jayawardena",
-      role: "Head of Tea Operations",
+      role: "Head of Agarwood Operations",
       image: "/images/team/kumari.jpg",
-      bio: "Kumari brings extensive knowledge of tea cultivation and processing from her 15 years in the industry."
+      bio: "Kumari brings extensive knowledge of agarwood cultivation and processing from her 15 years in the industry."
     },
     {
       id: 3,
       name: "Rohan Perera",
-      role: "Rubber Production Manager",
+      role: "Financial Manager",
       image: "/images/team/rohan.jpg",
-      bio: "Rohan specializes in sustainable rubber cultivation with expertise in FSC certification standards."
+      bio: "Rohan brings over 15 years of experience in agricultural finance and investment management."
     },
     {
       id: 4,

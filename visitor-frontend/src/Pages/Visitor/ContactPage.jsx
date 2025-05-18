@@ -347,19 +347,19 @@ const ContactPage = () => {
             <h2 className="text-3xl font-bold text-center mb-12 text-green-800">Our Plantation Locations</h2>
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
               <div className="bg-white p-6 rounded-lg shadow-md border border-green-100">
-                <h3 className="text-xl font-semibold mb-3 text-green-800">Nuwara Eliya Tea Estate</h3>
-                <p className="text-gray-600 mb-3">High-grown tea plantations in the central highlands of Sri Lanka.</p>
+                <h3 className="text-xl font-semibold mb-3 text-green-800">Mawanella Agarwood Nurcery</h3>
+                <p className="text-gray-600 mb-3">High-grown agarwood plantations in the wet zone in Sri Lanka.</p>
                 <p className="text-gray-600">
-                  <strong>Address:</strong> Nuwara Eliya Road, Nanu Oya<br />
+                  <strong>Address:</strong> Aranayake Road, Mawanella<br />
                   <strong>Phone:</strong> +94 52 222 3456
                 </p>
               </div>
 
               <div className="bg-white p-6 rounded-lg shadow-md border border-green-100">
-                <h3 className="text-xl font-semibold mb-3 text-green-800">Ratnapura Rubber Plantation</h3>
+                <h3 className="text-xl font-semibold mb-3 text-green-800">Kalutara Sandalwood Plantation</h3>
                 <p className="text-gray-600 mb-3">FSC-certified rubber cultivation and processing facility.</p>
                 <p className="text-gray-600">
-                  <strong>Address:</strong> Colombo Road, Ratnapura<br />
+                  <strong>Address:</strong> Colombo Road, Kalutara<br />
                   <strong>Phone:</strong> +94 45 222 7890
                 </p>
               </div>

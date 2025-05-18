@@ -5,6 +5,7 @@
  */
 
 const jwt = require("jsonwebtoken");
+const asyncHandler = require("express-async-handler");
 require("dotenv").config();
 
 /**
@@ -14,35 +15,70 @@ require("dotenv").config();
  * @param {Object} res - Express response object
  * @param {Function} next - Express next middleware function
  */
-const protect = (req, res, next) => {
- 
-  const authHeader = req.header("Authorization");
-  let token;
-  
-  if (authHeader && authHeader.startsWith('Bearer ')) {
-    token = authHeader.split(' ')[1];
-  } else {
-    token = req.header("x-auth-token");
-  }
-  
-  if (!token) {
-    return res.status(401).json({ 
-      success: false, 
-      error: "No token, authorization denied" 
-    });
-  }
-  
+const protect = asyncHandler(async (req, res, next) => {
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = decoded;
-    next();
-  } catch (err) {
-    res.status(401).json({ 
-      success: false, 
-      error: "Token is not valid" 
+    let token;
+    
+    // Check if token is in the authorization header
+    if (
+      req.headers.authorization &&
+      req.headers.authorization.startsWith('Bearer')
+    ) {
+      // Extract token from "Bearer [token]"
+      token = req.headers.authorization.split(' ')[1];
+    } else if (req.cookies && req.cookies.token) {
+      // Or get token from cookie
+      token = req.cookies.token;
+    }
+
+    if (!token) {
+      return res.status(401).json({
+        success: false,
+        error: 'Not authorized to access this route'
+      });
+    }
+
+    try {
+      // Verify token
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      
+      // Check if it's a customer token
+      if (decoded.role === 'customer') {
+        // Find customer and attach to request
+        const customer = await db.customer.findByPk(decoded.id);
+        
+        if (!customer) {
+          return res.status(401).json({
+            success: false,
+            error: 'Customer not found'
+          });
+        }
+        
+        // Set customer in request object
+        req.customer = customer;
+        next();
+      } else {
+        return res.status(401).json({
+          success: false,
+          error: 'Not authorized as customer'
+        });
+      }
+    } catch (error) {
+      return res.status(401).json({
+        success: false,
+        error: 'Token is not valid'
+      });
+    }
+  } catch (error) {
+    console.error('Auth middleware error:', error);
+    return res.status(500).json({
+      success: false,
+      error: 'Server error in authentication'
     });
   }
-};
+});
+
+console.log('protect middleware:', protect);
 
 /**
  * Role-based authorization middleware
@@ -95,8 +131,6 @@ const authorize = (roles = []) => {
   };
 };
 
-// Add logging statements after function definitions
-console.log('protect middleware:', protect);
 console.log('authorize middleware:', authorize);
 
 module.exports = { protect, authorize };

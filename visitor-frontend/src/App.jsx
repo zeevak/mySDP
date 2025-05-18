@@ -14,6 +14,8 @@ import ResultsCalculation from './Pages/Visitor/ResultsCalculation';
 
 // Product pages
 import Agarwood from './Pages/Visitor/Products/Agarwood';
+import Vanilla from './Pages/Visitor/Products/Vanilla';
+import Sandalwood from './Pages/Visitor/Products/Sandalwood';
 
 function App() {
   return (
@@ -30,6 +32,8 @@ function App() {
 
       {/* Product Routes */}
       <Route path="/products/agarwood" element={<Agarwood />} />
+      <Route path="/products/vanilla" element={<Vanilla />} />
+      <Route path="/products/sandalwood" element={<Sandalwood />} />
     </Routes>
   );
 }

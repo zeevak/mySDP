@@ -34,11 +34,8 @@ const Staff = sequelize.define('staff', {
   phone_no: {
     type: DataTypes.STRING,
     allowNull: true
-  },
-  status: {
-    type: DataTypes.STRING,
-    defaultValue: 'Active'
   }
+  
 }, {
   tableName: 'staff',
   timestamps: false

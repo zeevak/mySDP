@@ -38,7 +38,7 @@ const Customer = sequelize.define(
 Customer.associate = (models) => {
   Customer.hasMany(models.CustomerLand, {
     foreignKey: 'customer_id',
-    as: 'lands'
+    as: 'customer_land'
   });
 };
 

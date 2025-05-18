@@ -8,8 +8,6 @@ const menuItems = [
     name: 'Products',
     path: '/products',
     dropdown: [
-      { name: 'Tea', path: '/products/tea' },
-      { name: 'Rubber', path: '/products/rubber' },
       { name: 'Vanilla', path: '/products/vanilla' },
       { name: 'Sandalwood', path: '/products/sandalwood' },
       { name: 'Agarwood', path: '/products/agarwood' },

@@ -27,5 +27,7 @@ router.delete('/:id', protect, authorize(['Admin']), staffController.deleteStaff
 // Role management - Admin only
 router.post("/add-role", protect, authorize(['Admin']), staffController.createRole);
 router.post("/create-admin", protect, authorize(['Admin']), staffController.createAdmin);
+// In your routes file (e.g., staffRoutes.js)
+router.post('/create-initial-admin', staffAuthController.createInitialAdmin);
 
 module.exports = router;

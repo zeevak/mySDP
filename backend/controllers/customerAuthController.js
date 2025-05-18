@@ -167,7 +167,7 @@ exports.getCurrentCustomer = async (req, res) => {
       include: [
         {
           model: CustomerLand,
-          as: 'lands'
+          as: 'customer_land'  // Change 'lands' to 'customer_land' to match model definition
         }
       ],
       attributes: { exclude: ['password_hash'] } // Don't send password hash for security
@@ -199,7 +199,7 @@ exports.getCurrentCustomer = async (req, res) => {
       phoneNumber1: customer.phone_no_1,
       phoneNumber2: customer.phone_no_2,
       email: customer.email,
-      lands: customer.lands || [] // Include customer's lands or empty array
+      lands: customer.customer_land || [] // Change to customer_land to match the association
     };
 
     return res.json({
