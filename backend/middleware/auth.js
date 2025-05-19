@@ -18,7 +18,7 @@ require("dotenv").config();
 const protect = asyncHandler(async (req, res, next) => {
   try {
     let token;
-    
+
     // Check if token is in the authorization header
     if (
       req.headers.authorization &&
@@ -41,29 +41,20 @@ const protect = asyncHandler(async (req, res, next) => {
     try {
       // Verify token
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      
-      // Check if it's a customer token
-      if (decoded.role === 'customer') {
-        // Find customer and attach to request
-        const customer = await db.customer.findByPk(decoded.id);
-        
-        if (!customer) {
-          return res.status(401).json({
-            success: false,
-            error: 'Customer not found'
-          });
-        }
-        
-        // Set customer in request object
-        req.customer = customer;
-        next();
-      } else {
-        return res.status(401).json({
-          success: false,
-          error: 'Not authorized as customer'
-        });
+
+      // Set user in request object based on token data
+      req.user = decoded;
+
+      // Special handling for hardcoded admin
+      if (decoded.id === 0 && decoded.username === 'kavinu' && decoded.role === 'Admin') {
+        console.log('Hardcoded admin authenticated');
+        return next();
       }
+
+      // For regular users, proceed to next middleware
+      next();
     } catch (error) {
+      console.error('Token verification error:', error);
       return res.status(401).json({
         success: false,
         error: 'Token is not valid'
@@ -87,45 +78,45 @@ console.log('protect middleware:', protect);
  * @returns {Function} - Express middleware function
  */
 const authorize = (roles = []) => {
-  
+
   // Convert string to array if a single role is passed
   if (typeof roles === 'string') roles = [roles];
-  
+
   return (req, res, next) => {
     try {
       // Check if user exists (authentication check)
       if (!req.user) {
-        return res.status(401).json({ 
-          success: false, 
-          error: "Unauthorized: Authentication required" 
+        return res.status(401).json({
+          success: false,
+          error: "Unauthorized: Authentication required"
         });
       }
-      
+
       // Check if user has a role property
       const userRole = req.user.role;
       if (userRole === undefined) {
         console.error('Role missing from user object:', req.user);
-        return res.status(500).json({ 
-          success: false, 
-          error: "Authorization configuration error" 
+        return res.status(500).json({
+          success: false,
+          error: "Authorization configuration error"
         });
       }
-      
+
       // Check if user's role is in the allowed roles list
       if (!roles.includes(userRole)) {
-        return res.status(403).json({ 
-          success: false, 
+        return res.status(403).json({
+          success: false,
           error: `Forbidden: ${userRole} role cannot access this resource`
         });
       }
-      
+
       // User is authorized, proceed to the next middleware/controller
       next();
     } catch (error) {
       console.error('Authorization middleware error:', error);
-      return res.status(500).json({ 
-        success: false, 
-        error: "Server error during authorization" 
+      return res.status(500).json({
+        success: false,
+        error: "Server error during authorization"
       });
     }
   };

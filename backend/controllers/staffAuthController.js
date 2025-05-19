@@ -18,39 +18,81 @@ require('dotenv').config();
  */
 exports.login = async (req, res) => {
   const { username, password } = req.body;
-  
+
   try {
-    // Find staff by username
+    // Check for hardcoded admin credentials
+    if (username === 'kavinu' && password === 'admin2001') {
+      console.log('Hardcoded admin login successful');
+
+      // Find or create Admin role
+      let adminRole = await Role.findOne({
+        where: { role_name: 'Admin' }
+      });
+
+      if (!adminRole) {
+        adminRole = await Role.create({
+          role_name: 'Admin',
+          description: 'System Administrator'
+        });
+        console.log('Admin role created for hardcoded admin');
+      }
+
+      // Generate JWT token for the hardcoded admin
+      const payload = {
+        id: 0, // Special ID for hardcoded admin
+        username: 'kavinu',
+        role: 'Admin'
+      };
+
+      const token = jwt.sign(payload, process.env.JWT_SECRET, {
+        expiresIn: '24h' // Longer expiration for admin
+      });
+
+      return res.json({
+        success: true,
+        token,
+        role: 'Admin',
+        user: {
+          staff_id: 0,
+          name: 'System Administrator',
+          username: 'kavinu',
+          email: 'admin@susaruagro.com',
+          role: 'Admin'
+        }
+      });
+    }
+
+    // Regular authentication flow for other users
     const staff = await Staff.findOne({
       where: { username },
       include: [{ model: Role }]
     });
-    
+
     if (!staff) {
       return res.status(401).json({
         success: false,
         message: 'Invalid credentials'
       });
     }
-    
+
     console.log('Found user:', username);
     console.log('Password from request:', password);
     console.log('Stored hash:', staff.password_hash);
     console.log('Hash length:', staff.password_hash.length);
-    
+
     // Check if hash has proper format (should start with $2a$ or $2b$)
     if (!staff.password_hash.startsWith('$2')) {
       console.log('WARNING: Hash does not appear to be a valid bcrypt hash');
     }
-    
+
     // Try different approaches to compare
     let isMatch = false;
-    
+
     try {
       // Standard approach
       isMatch = await bcrypt.compare(password, staff.password_hash);
       console.log('Standard compare result:', isMatch);
-      
+
       if (!isMatch) {
         // Try with explicit string conversion
         isMatch = await bcrypt.compare(String(password), String(staff.password_hash));
@@ -59,15 +101,38 @@ exports.login = async (req, res) => {
     } catch (bcryptError) {
       console.error('Bcrypt comparison error:', bcryptError);
     }
-    
+
     if (!isMatch) {
       return res.status(401).json({
         success: false,
         message: 'Invalid credentials'
       });
     }
-    
-    // Rest of your code remains the same...
+
+    // Generate JWT token for authenticated staff
+    const payload = {
+      id: staff.staff_id,
+      username: staff.username,
+      role: staff.Role.role_name
+    };
+
+    const token = jwt.sign(payload, process.env.JWT_SECRET, {
+      expiresIn: '8h'
+    });
+
+    // Return success response with token and user data
+    return res.json({
+      success: true,
+      token,
+      role: staff.Role.role_name,
+      user: {
+        staff_id: staff.staff_id,
+        name: staff.name,
+        username: staff.username,
+        email: staff.email,
+        role: staff.Role.role_name
+      }
+    });
   } catch (err) {
     console.error('Staff Login Error:', err);
     res.status(500).json({
@@ -86,18 +151,34 @@ exports.login = async (req, res) => {
  */
 exports.getCurrentStaff = async (req, res) => {
   try {
+    // Check if this is the hardcoded admin (id = 0)
+    if (req.user && req.user.id === 0 && req.user.username === 'kavinu') {
+      return res.json({
+        success: true,
+        data: {
+          id: 0,
+          name: 'System Administrator',
+          username: 'kavinu',
+          email: 'admin@susaruagro.com',
+          phone: '',
+          role: 'Admin'
+        }
+      });
+    }
+
+    // For regular staff members
     const staff = await Staff.findByPk(req.user.id, {
       include: [{ model: Role }],
       attributes: { exclude: ['password_hash'] }
     });
-    
+
     if (!staff) {
       return res.status(404).json({
         success: false,
         message: 'Staff not found'
       });
     }
-    
+
     res.json({
       success: true,
       data: {
@@ -106,11 +187,10 @@ exports.getCurrentStaff = async (req, res) => {
         username: staff.username,
         email: staff.email,
         phone: staff.phone_no,
-        role: staff.Role.role_name,
-        
+        role: staff.Role.role_name
       }
     });
-    
+
   } catch (err) {
     console.error('Get Staff Profile Error:', err);
     res.status(500).json({
