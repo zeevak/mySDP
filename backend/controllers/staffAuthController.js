@@ -23,9 +23,9 @@ exports.login = async (req, res) => {
   try {
     console.log('Login attempt for username:', username);
 
-    // Check for hardcoded admin credentials
+    // Check for system admin credentials
     if (username === 'kavinu' && password === 'admin2001') {
-      console.log('Hardcoded admin login successful');
+      console.log('System admin login successful');
 
       try {
         // Find or create Admin role
@@ -38,12 +38,12 @@ exports.login = async (req, res) => {
             role_name: 'Admin',
             description: 'System Administrator'
           });
-          console.log('Admin role created for hardcoded admin');
+          console.log('Admin role created for system admin');
         }
 
-        // Generate JWT token for the hardcoded admin
+        // Generate JWT token for the system admin
         const payload = {
-          id: 0, // Special ID for hardcoded admin
+          id: 0, // Special ID for system admin
           username: 'kavinu',
           role: 'Admin'
         };
@@ -64,11 +64,11 @@ exports.login = async (req, res) => {
             role: 'Admin'
           }
         });
-      } catch (hardcodedAdminError) {
-        console.error('Error in hardcoded admin login:', hardcodedAdminError);
+      } catch (systemAdminError) {
+        console.error('Error in system admin login:', systemAdminError);
         return res.status(500).json({
           success: false,
-          message: 'Server error during hardcoded admin authentication'
+          message: 'Server error during system admin authentication'
         });
       }
     }
@@ -196,7 +196,7 @@ exports.login = async (req, res) => {
  */
 exports.getCurrentStaff = async (req, res) => {
   try {
-    // Check if this is the hardcoded admin (id = 0)
+    // Check if this is the system admin (id = 0)
     if (req.user && req.user.id === 0 && req.user.username === 'kavinu') {
       return res.json({
         success: true,

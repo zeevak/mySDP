@@ -22,17 +22,19 @@ const AdminDashboard = () => {
       try {
         setLoading(true);
         const token = localStorage.getItem('token');
-        
+
         // Fetch dashboard statistics
-        const statsResponse = await axios.get('/api/admin/dashboard/stats', {
+        const statsResponse = await axios.get('http://localhost:5001/api/admin/dashboard/stats', {
           headers: { Authorization: `Bearer ${token}` }
         });
-        
+        console.log('Stats response:', statsResponse.data);
+
         // Fetch recent activity
-        const activityResponse = await axios.get('/api/admin/dashboard/activity', {
+        const activityResponse = await axios.get('http://localhost:5001/api/admin/dashboard/activity', {
           headers: { Authorization: `Bearer ${token}` }
         });
-        
+        console.log('Activity response:', activityResponse.data);
+
         setStats(statsResponse.data);
         setRecentActivity(activityResponse.data);
         setLoading(false);
@@ -42,7 +44,7 @@ const AdminDashboard = () => {
         setLoading(false);
       }
     };
-    
+
     fetchDashboardData();
   }, []);
 
@@ -55,19 +57,19 @@ const AdminDashboard = () => {
   return (
     <div className="flex flex-col min-h-screen bg-gray-100">
       <StaffHeader />
-      
+
       <main className="flex-grow container mx-auto px-4 py-8">
         <div className="mb-6">
           <h1 className="text-3xl font-bold text-gray-800">Admin Dashboard</h1>
           <p className="text-gray-600">Welcome to Susaru Agro Plantation management system</p>
         </div>
-        
+
         {error && (
           <div className="mb-6 bg-red-50 border-l-4 border-red-500 p-4 text-red-700">
             <p>{error}</p>
           </div>
         )}
-        
+
         {loading ? (
           <div className="flex justify-center items-center h-64">
             <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-500"></div>
@@ -97,7 +99,7 @@ const AdminDashboard = () => {
                   </div>
                 </div>
               </div>
-              
+
               <div className="bg-white rounded-lg shadow p-6">
                 <h2 className="text-lg font-semibold text-gray-700 mb-4">Communication</h2>
                 <div className="space-y-4">
@@ -106,8 +108,8 @@ const AdminDashboard = () => {
                       <p className="text-sm text-gray-500">Unread Messages</p>
                       <p className="text-2xl font-bold text-gray-700">{stats.messages}</p>
                     </div>
-                    <Link 
-                      to="/staff/messages" 
+                    <Link
+                      to="/staff/messages"
                       className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm hover:bg-green-200 transition"
                     >
                       View All
@@ -118,8 +120,8 @@ const AdminDashboard = () => {
                       <p className="text-sm text-gray-500">Customer Requests</p>
                       <p className="text-2xl font-bold text-gray-700">{stats.requests}</p>
                     </div>
-                    <Link 
-                      to="/staff/requests" 
+                    <Link
+                      to="/staff/requests"
                       className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm hover:bg-green-200 transition"
                     >
                       View All
@@ -127,36 +129,36 @@ const AdminDashboard = () => {
                   </div>
                 </div>
               </div>
-              
+
               <div className="bg-white rounded-lg shadow p-6">
                 <h2 className="text-lg font-semibold text-gray-700 mb-4">Quick Actions</h2>
                 <div className="grid grid-cols-2 gap-3">
-                  <Link 
-                    to="/admin/staff" 
+                  <Link
+                    to="/admin/staff"
                     className="bg-blue-600 text-white p-3 rounded-lg text-center hover:bg-blue-700 transition"
                   >
                     Manage Staff
                   </Link>
-                  <Link 
-                    to="/staff/customers" 
+                  <Link
+                    to="/staff/customers"
                     className="bg-green-600 text-white p-3 rounded-lg text-center hover:bg-green-700 transition"
                   >
                     Manage Customers
                   </Link>
-                  <Link 
-                    to="/staff/inventory" 
+                  <Link
+                    to="/staff/inventory"
                     className="bg-yellow-600 text-white p-3 rounded-lg text-center hover:bg-yellow-700 transition"
                   >
                     Inventory
                   </Link>
-                  <Link 
-                    to="/staff/projects" 
+                  <Link
+                    to="/staff/projects"
                     className="bg-purple-600 text-white p-3 rounded-lg text-center hover:bg-purple-700 transition"
                   >
                     Projects
                   </Link>
-                  <Link 
-                    to="/admin/reports" 
+                  <Link
+                    to="/admin/reports"
                     className="bg-indigo-600 text-white p-3 rounded-lg text-center hover:bg-indigo-700 transition col-span-2"
                   >
                     Monthly Reports
@@ -164,19 +166,19 @@ const AdminDashboard = () => {
                 </div>
               </div>
             </div>
-            
+
             {/* Recent Activity */}
             <div className="bg-white rounded-lg shadow p-6">
               <div className="flex justify-between items-center mb-4">
                 <h2 className="text-lg font-semibold text-gray-700">Recent Activity</h2>
-                <Link 
-                  to="/admin/activity" 
+                <Link
+                  to="/admin/activity"
                   className="text-green-600 hover:text-green-800 text-sm"
                 >
                   View All
                 </Link>
               </div>
-              
+
               {recentActivity.length === 0 ? (
                 <p className="text-gray-500 text-center py-4">No recent activity to display</p>
               ) : (
@@ -219,7 +221,7 @@ const AdminDashboard = () => {
           </>
         )}
       </main>
-      
+
       <StaffFooter />
     </div>
   );

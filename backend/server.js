@@ -32,7 +32,7 @@ app.get("/", (req, res) => {
   res.send("Backend service is running!");
 });
 
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5001; // Use port 5001 instead of 5000
 
 // Skip database sync for now to allow server to start
 // sequelize.sync({ alter: true }).then(() => {

@@ -45,9 +45,9 @@ const protect = asyncHandler(async (req, res, next) => {
       // Set user in request object based on token data
       req.user = decoded;
 
-      // Special handling for hardcoded admin
+      // Special handling for system admin
       if (decoded.id === 0 && decoded.username === 'kavinu' && decoded.role === 'Admin') {
-        console.log('Hardcoded admin authenticated');
+        console.log('System admin authenticated');
         return next();
       }
 

@@ -247,8 +247,8 @@ const AgarwoodCalculator = () => {
         details: result?.details
       };
 
-      // Send the data to the backend
-      const response = await axios.post('http://localhost:5000/api/land/save-visitor', visitorData);
+      // Send the data to the backend (updated to use port 5001)
+      const response = await axios.post('http://localhost:5001/api/land/save-visitor', visitorData);
 
       if (response.data.success) {
         console.log('Visitor data saved successfully:', response.data);

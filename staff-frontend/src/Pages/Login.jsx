@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
 // Set base URL for all axios requests
-axios.defaults.baseURL = 'http://localhost:5000';
+axios.defaults.baseURL = 'http://localhost:5001';
 
 const Login = () => {
   const [credentials, setCredentials] = useState({
@@ -43,7 +43,7 @@ const Login = () => {
     setLoading(true);
     console.log('Login attempt with:', credentials.username);
 
-    // System has a hardcoded admin with:
+    // System has a system admin with:
     // username: 'kavinu'
     // password: 'admin2001'
     // This admin has full system access and can manage other admins and staff

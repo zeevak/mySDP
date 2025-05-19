@@ -7,6 +7,7 @@
 const express = require("express");
 const router = express.Router();
 const staffController = require("../controllers/staffController");
+const dashboardController = require("../controllers/dashboardController");
 const { protect, authorize } = require("../middleware/auth");
 
 // Staff management routes - Admin only
@@ -19,22 +20,8 @@ router.delete('/staff/:id', protect, authorize(['Admin']), staffController.delet
 router.post("/staff/add-role", protect, authorize(['Admin']), staffController.createRole);
 router.post("/staff/create-admin", protect, authorize(['Admin']), staffController.createAdmin);
 
-// Add placeholder routes for dashboard data that the frontend is requesting
-router.get('/dashboard/stats', protect, authorize(['Admin']), (req, res) => {
-  // Placeholder response - this should be replaced with actual data
-  res.json({
-    customers: 0,
-    staff: 0,
-    projects: 0,
-    inventory: 0,
-    messages: 0,
-    requests: 0
-  });
-});
-
-router.get('/dashboard/activity', protect, authorize(['Admin']), (req, res) => {
-  // Placeholder response - this should be replaced with actual data
-  res.json([]);
-});
+// Dashboard routes
+router.get('/dashboard/stats', protect, authorize(['Admin']), dashboardController.getStats);
+router.get('/dashboard/activity', protect, authorize(['Admin']), dashboardController.getActivity);
 
 module.exports = router;

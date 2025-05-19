@@ -78,8 +78,8 @@ const ContactPage = () => {
     setIsSubmitting(true);
 
     try {
-      // Replace this URL with your actual backend API endpoint
-      const response = await fetch('http://localhost:5000/api/message/submit', {
+      // Updated to use port 5001
+      const response = await fetch('http://localhost:5001/api/message/submit', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
