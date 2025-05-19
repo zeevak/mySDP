@@ -14,6 +14,7 @@ app.use(express.json());
 
 app.use("/api/customer", require("./routes/customerRoutes"));
 app.use("/api/staff", require("./routes/staffRoutes"));
+app.use("/api/admin", require("./routes/adminRoutes"));
 app.use("/api/land", require("./routes/landRoutes"));
 app.use("/api/project", require("./routes/projectRoutes"));
 app.use("/api/message", require("./routes/messageRoutes"));
@@ -32,6 +33,14 @@ app.get("/", (req, res) => {
 });
 
 const PORT = process.env.PORT || 5000;
-sequelize.sync({ force: false }).then(() => {
-  server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
-});
+
+// Skip database sync for now to allow server to start
+// sequelize.sync({ alter: true }).then(() => {
+//   console.log('Database synchronized');
+//   server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+// }).catch(err => {
+//   console.error('Failed to sync database:', err);
+// });
+
+// Start server without database sync
+server.listen(PORT, () => console.log(`Server running on port ${PORT}`));

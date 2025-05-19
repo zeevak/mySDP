@@ -25,12 +25,12 @@ const Project = sequelize.define(
       defaultValue: "Agarwood",
       validate: { isIn: [["Agarwood", "Sandalwood", "Vanilla", "Other"]] },
     },
-    status: { 
-      type: DataTypes.STRING(10), 
+    status: {
+      type: DataTypes.STRING(10),
       defaultValue: "Pending",
       validate: { isIn: [["Pending", "Ongoing", "Completed"]] }
     },
-    start_date: { 
+    start_date: {
       type: DataTypes.DATE,
       validate: {
         isValidStartDate(value) {
@@ -40,7 +40,7 @@ const Project = sequelize.define(
         }
       }
     },
-    end_date: { 
+    end_date: {
       type: DataTypes.DATE,
       validate: {
         isValidEndDate(value) {
@@ -57,8 +57,8 @@ const Project = sequelize.define(
   { timestamps: false }
 );
 
-Project.belongsTo(Staff, { foreignKey: "staff_id" });
-Project.belongsTo(Proposal, { foreignKey: "proposal_id", onDelete: "SET NULL" });
+// Define associations without foreign key constraints
+// We'll handle the relationships in the application logic
 // Note: We don't define the hasMany relationship here to avoid circular dependencies
 // This will be defined in the index.js file
 

@@ -16,7 +16,7 @@ const staffController = {
         include: [{ model: Role }],
         attributes: { exclude: ['password_hash'] }
       });
-      
+
       const formattedStaff = staffMembers.map(staff => ({
         staff_id: staff.staff_id,
         name: staff.name,
@@ -27,23 +27,23 @@ const staffController = {
         role_name: staff.Role.role_name,
         status: staff.status
       }));
-      
+
       res.status(200).json({
         success: true,
         data: formattedStaff
       });
     } catch (err) {
       console.error('Error fetching staff:', err);
-      res.status(500).json({ 
+      res.status(500).json({
         success: false,
-        error: 'Failed to fetch staff members' 
+        error: 'Failed to fetch staff members'
       });
     }
   },
-  
+
   createStaff: async (req, res) => {
-    const { name, email, phone_no, role_id, username, password, status } = req.body;
-    
+    const { name, email, phone_no, role_id, username, password } = req.body;
+
     try {
       // Check if username already exists
       const existingStaff = await Staff.findOne({ where: { username } });
@@ -53,11 +53,11 @@ const staffController = {
           error: 'Username already exists'
         });
       }
-      
+
       // Hash password
       const salt = await bcrypt.genSalt(10);
       const hashedPassword = await bcrypt.hash(password, salt);
-      
+
       // Create new staff member
       const newStaff = await Staff.create({
         name,
@@ -65,15 +65,15 @@ const staffController = {
         phone_no,
         role_id,
         username,
-        password_hash: hashedPassword,
-        status: status || 'Active'
+        password_hash: hashedPassword
+        // status is set to 'Active' by default in the model
       });
-      
+
 
 
       // Get role information
       const role = await Role.findByPk(role_id);
-      
+
       res.status(201).json({
         success: true,
         data: {
@@ -95,7 +95,7 @@ const staffController = {
       });
     }
   },
-  
+
 createRole: async (req, res) => {
   try {
     const { role_name } = req.body;
@@ -130,8 +130,8 @@ createAdmin: async (req, res) => {
       email,
       phone_no,
       role_id: role.role_id,
-      password_hash: hashedPassword,
-      status: 'Active'
+      password_hash: hashedPassword
+      // status is set to 'Active' by default in the model
     });
 
     res.status(201).json({ success: true, data: admin });
@@ -143,8 +143,8 @@ createAdmin: async (req, res) => {
 
   updateStaff: async (req, res) => {
     const { id } = req.params;
-    const { name, email, phone_no, role_id, username, password, status } = req.body;
-    
+    const { name, email, phone_no, role_id, username, password } = req.body;
+
     try {
       // Check if staff exists
       const staff = await Staff.findByPk(id);
@@ -154,7 +154,7 @@ createAdmin: async (req, res) => {
           error: 'Staff member not found'
         });
       }
-      
+
       // Check if username is being changed and already exists
       if (username !== staff.username) {
         const existingStaff = await Staff.findOne({ where: { username } });
@@ -165,26 +165,26 @@ createAdmin: async (req, res) => {
           });
         }
       }
-      
+
       // Update fields
       staff.name = name;
       staff.email = email;
       staff.phone_no = phone_no;
       staff.role_id = role_id;
       staff.username = username;
-      staff.status = status;
-      
+      // status remains 'Active' and cannot be changed
+
       // Update password if provided
       if (password) {
         const salt = await bcrypt.genSalt(10);
         staff.password_hash = await bcrypt.hash(password, salt);
       }
-      
+
       await staff.save();
-      
+
       // Get updated role information
       const role = await Role.findByPk(role_id);
-      
+
       res.status(200).json({
         success: true,
         data: {
@@ -206,10 +206,10 @@ createAdmin: async (req, res) => {
       });
     }
   },
-  
+
   deleteStaff: async (req, res) => {
     const { id } = req.params;
-    
+
     try {
       const staff = await Staff.findByPk(id);
       if (!staff) {
@@ -218,9 +218,9 @@ createAdmin: async (req, res) => {
           error: 'Staff member not found'
         });
       }
-      
+
       await staff.destroy();
-      
+
       res.status(200).json({
         success: true,
         message: 'Staff member deleted successfully'

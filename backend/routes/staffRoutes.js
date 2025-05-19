@@ -1,4 +1,4 @@
-// 
+//
 // routes/staffRoutes.js
 /**
  * Staff Routes
@@ -18,16 +18,10 @@ console.log('Available staff controller methods:', Object.keys(staffController))
 router.post("/login", staffAuthController.login);
 router.get("/me", protect, authorize(['Admin', 'Staff']), staffAuthController.getCurrentStaff);
 
-// Staff management routes - Admin only
-router.get('/all', protect, authorize(['Admin']), staffController.getAllStaff);
-router.post('/create', protect, authorize(['Admin']), staffController.createStaff);
-router.put('/:id', protect, authorize(['Admin']), staffController.updateStaff);
-router.delete('/:id', protect, authorize(['Admin']), staffController.deleteStaff);
-
-// Role management - Admin only
-router.post("/add-role", protect, authorize(['Admin']), staffController.createRole);
-router.post("/create-admin", protect, authorize(['Admin']), staffController.createAdmin);
-// In your routes file (e.g., staffRoutes.js)
+// Admin creation routes
 router.post('/create-initial-admin', staffAuthController.createInitialAdmin);
+
+// Test routes for debugging
+router.post('/create-test-staff', staffAuthController.createTestStaff);
 
 module.exports = router;
