@@ -17,8 +17,7 @@ const StaffManager = () => {
     phone: '',
     role_id: 2, // Default to Staff role (role_id 2)
     username: '',
-    password: '',
-    status: 'Active'
+    password: ''
   });
 
   // Modal state
@@ -36,7 +35,7 @@ const StaffManager = () => {
       const response = await axios.get('/api/admin/staff', {
         headers: { Authorization: `Bearer ${token}` }
       });
-      
+
       setStaff(response.data);
       setLoading(false);
     } catch (err) {
@@ -59,8 +58,7 @@ const StaffManager = () => {
       phone: '',
       role_id: 2, // Default to Staff role
       username: '',
-      password: '',
-      status: 'Active'
+      password: ''
     });
     setShowModal(true);
   };
@@ -74,8 +72,7 @@ const StaffManager = () => {
       phone: staffMember.phone_no || '',
       role_id: staffMember.role_id,
       username: staffMember.username,
-      password: '', // Don't populate password for security
-      status: staffMember.status || 'Active'
+      password: '' // Don't populate password for security
     });
     setShowModal(true);
   };
@@ -107,7 +104,7 @@ const StaffManager = () => {
 
     try {
       const token = localStorage.getItem('token');
-      
+
       // Create a properly formatted request payload
       const staffData = {
         name: formData.name,
@@ -115,22 +112,22 @@ const StaffManager = () => {
         phone: formData.phone, // This should match what the controller expects
         role_id: parseInt(formData.role_id), // Ensure role_id is a number
         username: formData.username,
-        password: formData.password,
-        status: formData.status
+        password: formData.password
+        // status is set to 'Active' by default in the model
       };
-      
+
       if (formMode === 'add') {
         const response = await axios.post('/api/admin/staff', staffData, {
           headers: { Authorization: `Bearer ${token}` }
         });
-        
+
         // Add the new staff member to the local state
         setStaff([...staff, response.data]);
       } else {
         const response = await axios.put(`/api/admin/staff/${selectedStaff.staff_id}`, staffData, {
           headers: { Authorization: `Bearer ${token}` }
         });
-        
+
         // Update the staff member in the local state
         setStaff(staff.map(s => s.staff_id === selectedStaff.staff_id ? response.data : s));
       }
@@ -211,17 +208,15 @@ const StaffManager = () => {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                          staffMember.role_id === 1 ? 'bg-purple-100 text-purple-800' : 
+                          staffMember.role_id === 1 ? 'bg-purple-100 text-purple-800' :
                           'bg-green-100 text-green-800'
                         }`}>
                           {getRoleName(staffMember.role_id)}
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                          staffMember.status === 'Active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                        }`}>
-                          {staffMember.status || 'Active'}
+                        <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                          Active
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
@@ -333,18 +328,7 @@ const StaffManager = () => {
                   </select>
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
-                  <select
-                    name="status"
-                    value={formData.status}
-                    onChange={handleInputChange}
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
-                  >
-                    <option value="Active">Active</option>
-                    <option value="Inactive">Inactive</option>
-                  </select>
-                </div>
+
               </div>
 
               <div className="px-6 py-4 bg-gray-50 flex justify-end space-x-3 rounded-b-lg">
