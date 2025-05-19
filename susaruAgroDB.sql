@@ -46,7 +46,8 @@ CREATE TABLE customer (
     phone_no_1 VARCHAR(12),
     phone_no_2 VARCHAR(12),
     email VARCHAR(255) UNIQUE NOT NULL,
-    password_hash VARCHAR(255) NOT NULL
+    password_hash VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Table: Role

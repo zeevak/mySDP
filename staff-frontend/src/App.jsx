@@ -6,6 +6,7 @@ import AdminDashboard from './Pages/Admin/AdminDashboard';
 import CustomerManager from './Pages/Staff/CustomerManager';
 import InventoryManager from './Pages/Staff/InventoryManager';
 import StaffManager from './Pages/Admin/StaffManager';
+import MessagesPage from './Pages/Staff/MessagesPage';
 import DashboardRedirect from './Components/DashboardRedirect';
 
 // Protected route component
@@ -46,6 +47,10 @@ function App() {
         <Route
           path="/staff/inventory"
           element={<ProtectedRoute element={<InventoryManager />} allowedRoles={['Staff', 'Admin']} />}
+        />
+        <Route
+          path="/staff/messages"
+          element={<ProtectedRoute element={<MessagesPage />} allowedRoles={['Staff', 'Admin']} />}
         />
 
         {/* Protected routes - Admin only */}

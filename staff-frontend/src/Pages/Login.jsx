@@ -68,8 +68,11 @@ const Login = () => {
         localStorage.setItem('token', response.data.token);
         localStorage.setItem('role', response.data.role);
 
-        // Also store user data if needed
+        // Store user data
         localStorage.setItem('user', JSON.stringify(response.data.user));
+
+        // Store username separately for easy access
+        localStorage.setItem('username', response.data.user.username);
 
         console.log('Authentication successful, role:', response.data.role);
 

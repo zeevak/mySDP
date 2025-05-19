@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
+import axios from 'axios';
 
 const Staff_Header = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -8,13 +9,66 @@ const Staff_Header = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
+  // Function to fetch user profile from the backend
+  const fetchUserProfile = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) return;
+
+      const response = await axios.get('http://localhost:5001/api/staff/me', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      if (response.data && response.data.success && response.data.data) {
+        const userData = response.data.data;
+
+        // Update username in state and localStorage
+        setUsername(userData.username);
+        localStorage.setItem('username', userData.username);
+
+        // Update user data in localStorage
+        localStorage.setItem('user', JSON.stringify(userData));
+      }
+    } catch (error) {
+      console.error('Error fetching user profile:', error);
+    }
+  };
+
   useEffect(() => {
     // Check if user is logged in
     const token = localStorage.getItem('token');
     if (token) {
       setIsLoggedIn(true);
-      // You could decode JWT here to get username or fetch from API
-      setUsername(localStorage.getItem('username') || 'User');
+
+      // Get username from localStorage
+      const storedUsername = localStorage.getItem('username');
+
+      // If username is not in localStorage, try to get it from the user object
+      if (!storedUsername) {
+        try {
+          const userStr = localStorage.getItem('user');
+          if (userStr) {
+            const user = JSON.parse(userStr);
+            if (user && user.username) {
+              setUsername(user.username);
+              // Store it for future use
+              localStorage.setItem('username', user.username);
+            } else {
+              // If no username in user object, fetch from backend
+              fetchUserProfile();
+            }
+          } else {
+            // If no user object, fetch from backend
+            fetchUserProfile();
+          }
+        } catch (error) {
+          console.error('Error parsing user data:', error);
+          // If error parsing, fetch from backend
+          fetchUserProfile();
+        }
+      } else {
+        setUsername(storedUsername);
+      }
     } else {
       setIsLoggedIn(false);
     }
@@ -24,7 +78,9 @@ const Staff_Header = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('role');
     localStorage.removeItem('username');
+    localStorage.removeItem('user');
     setIsLoggedIn(false);
+    setUsername('');
     navigate('/login');
   };
 
@@ -52,32 +108,32 @@ const Staff_Header = () => {
                 {isLoggedIn && (
                   <ul className="md:flex space-y-2 md:space-y-0 md:space-x-6">
                     <li>
-                      <Link 
-                        to="/dashboard" 
+                      <Link
+                        to="/dashboard"
                         className={`block px-3 py-2 rounded-md ${location.pathname === '/dashboard' ? 'bg-green-700' : 'hover:bg-green-700'} transition duration-200`}
                       >
                         Dashboard
                       </Link>
                     </li>
                     <li>
-                      <Link 
-                        to="/customers" 
+                      <Link
+                        to="/customers"
                         className={`block px-3 py-2 rounded-md ${location.pathname.includes('/customers') ? 'bg-green-700' : 'hover:bg-green-700'} transition duration-200`}
                       >
                         Customers
                       </Link>
                     </li>
                     <li>
-                      <Link 
-                        to="/inventory" 
+                      <Link
+                        to="/inventory"
                         className={`block px-3 py-2 rounded-md ${location.pathname.includes('/inventory') ? 'bg-green-700' : 'hover:bg-green-700'} transition duration-200`}
                       >
                         Inventory
                       </Link>
                     </li>
                     <li>
-                      <Link 
-                        to="/projects" 
+                      <Link
+                        to="/projects"
                         className={`block px-3 py-2 rounded-md ${location.pathname.includes('/projects') ? 'bg-green-700' : 'hover:bg-green-700'} transition duration-200`}
                       >
                         Projects
@@ -91,7 +147,7 @@ const Staff_Header = () => {
                 {isLoggedIn ? (
                   <div className="flex items-center">
                     <span className="hidden md:inline-block mr-4 text-green-100">{username}</span>
-                    <button 
+                    <button
                       onClick={handleLogout}
                       className="bg-green-700 hover:bg-green-600 px-4 py-2 rounded-md transition duration-200"
                     >
@@ -99,23 +155,23 @@ const Staff_Header = () => {
                     </button>
                   </div>
                 ) : (
-                  <Link 
+                  <Link
                     to="/login"
                     className="bg-white text-green-800 hover:bg-gray-100 px-4 py-2 rounded-md transition duration-200"
                   >
                     Login
                   </Link>
                 )}
-                
-                <button 
+
+                <button
                   onClick={toggleMenu}
                   className="ml-4 md:hidden focus:outline-none"
                 >
-                  <svg 
-                    className="w-6 h-6" 
-                    fill="none" 
-                    stroke="currentColor" 
-                    viewBox="0 0 24 24" 
+                  <svg
+                    className="w-6 h-6"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
                     xmlns="http://www.w3.org/2000/svg"
                   >
                     {isMenuOpen ? (

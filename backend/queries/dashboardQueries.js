@@ -14,9 +14,9 @@ const dashboardQueries = {
 
   // Recent activity queries
   recentCustomers: `
-    SELECT customer_id, full_name, email, date_of_birth as registration_date
+    SELECT customer_id, full_name, email, created_at as registration_date
     FROM customer
-    ORDER BY date_of_birth DESC
+    ORDER BY created_at DESC
     LIMIT 5
   `,
 

@@ -3,6 +3,9 @@ const { DataTypes } = require('sequelize');
 const sequelize = require('../config/db');
 const Role = require('./Role');
 
+// Log model definition for debugging
+console.log('Defining Staff model with phone_no field');
+
 const Staff = sequelize.define('staff', {
   staff_id: {
     type: DataTypes.INTEGER,
@@ -34,15 +37,18 @@ const Staff = sequelize.define('staff', {
   phone_no: {
     type: DataTypes.STRING,
     allowNull: true
-  },
-  status: {
-    type: DataTypes.STRING,
-    allowNull: false,
-    defaultValue: 'Active'
   }
 }, {
   tableName: 'staff',
-  timestamps: false
+  timestamps: false,
+  hooks: {
+    beforeCreate: (staff, options) => {
+      console.log('Creating staff with data:', JSON.stringify(staff, null, 2));
+    },
+    beforeUpdate: (staff, options) => {
+      console.log('Updating staff with data:', JSON.stringify(staff, null, 2));
+    }
+  }
 });
 
 // Define association
