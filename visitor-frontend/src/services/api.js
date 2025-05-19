@@ -48,11 +48,11 @@ axiosInstance.interceptors.response.use(
                 
                 // For now, just logout the user
                 localStorage.removeItem(AUTH_TOKEN_KEY);
-                window.location.href = "/customer-login";
+                window.location.href = "/customer/login";
             } catch (refreshError) {
                 console.error("Error refreshing token:", refreshError);
                 localStorage.removeItem(AUTH_TOKEN_KEY);
-                window.location.href = "/customer-login";
+                window.location.href = "/customer/login";
                 return Promise.reject(refreshError);
             }
         }

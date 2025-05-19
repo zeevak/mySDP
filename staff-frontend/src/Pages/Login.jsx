@@ -2,6 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
+// Set base URL for all axios requests
+axios.defaults.baseURL = 'http://localhost:5000';
+
 const Login = () => {
   const [credentials, setCredentials] = useState({
     username: '',
@@ -38,13 +41,37 @@ const Login = () => {
     e.preventDefault();
     setError('');
     setLoading(true);
+    console.log('Login attempt with:', credentials.username);
+
+    // System has a hardcoded admin with:
+    // username: 'kavinu'
+    // password: 'admin2001'
+    // This admin has full system access and can manage other admins and staff
 
     try {
-      // Try to login with the API
-      try {
-        const response = await axios.post('/api/staff/login', credentials);
+      console.log('Sending request to API...');
+
+      // Set proper headers and timeout
+      const config = {
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        timeout: 100000 // 10 seconds timeout
+      };
+
+      const response = await axios.post('/api/staff/login', credentials, config);
+      console.log('API Response:', response.data);
+
+      if (response.data && response.data.success) {
+        // Store the token and role
         localStorage.setItem('token', response.data.token);
         localStorage.setItem('role', response.data.role);
+
+        // Also store user data if needed
+        localStorage.setItem('user', JSON.stringify(response.data.user));
+
+        console.log('Authentication successful, role:', response.data.role);
 
         // Redirect based on role
         if (response.data.role === 'Admin') {
@@ -52,26 +79,38 @@ const Login = () => {
         } else {
           navigate('/staff/dashboard');
         }
-      } catch (apiError) {
-        console.error('API Error:', apiError);
-
-        // For testing/development purposes only - remove in production
-        if (credentials.username === 'admin' && credentials.password === 'admin123') {
-          localStorage.setItem('token', 'test-admin-token');
-          localStorage.setItem('role', 'Admin');
-          navigate('/admin/dashboard');
-          return;
-        } else if (credentials.username === 'staff' && credentials.password === 'staff123') {
-          localStorage.setItem('token', 'test-staff-token');
-          localStorage.setItem('role', 'Staff');
-          navigate('/staff/dashboard');
-          return;
-        }
-
-        throw apiError;
+      } else {
+        // Handle unexpected success response format
+        console.log('Unexpected response format:', response.data);
+        setError('Unexpected response from server. Please try again.');
       }
     } catch (err) {
-      setError(err.response?.data?.message || 'Login failed. Please check your credentials.');
+      console.error('Authentication Error:', err);
+
+      // Comprehensive error handling
+      if (err.code === 'ECONNABORTED') {
+        setError('Request timed out. Please try again.');
+      } else if (err.code === 'ERR_NETWORK') {
+        setError('Network error. Please check your connection and try again.');
+      } else if (err.response) {
+        // The server responded with a status code outside the 2xx range
+        console.log('Server error status:', err.response.status);
+        console.log('Server error data:', err.response.data);
+
+        if (err.response.data && err.response.data.message) {
+          setError(err.response.data.message);
+        } else {
+          setError(`Server error (${err.response.status}). Please try again.`);
+        }
+      } else if (err.request) {
+        // The request was made but no response was received
+        console.log('No response received:', err.request);
+        setError('No response from server. Please check your connection.');
+      } else {
+        // Something happened in setting up the request
+        console.log('Request setup error:', err.message);
+        setError('Error setting up request: ' + err.message);
+      }
     } finally {
       setLoading(false);
     }
@@ -83,10 +122,14 @@ const Login = () => {
         <div className="bg-white rounded-lg shadow-2xl overflow-hidden">
           {/* Header */}
           <div className="bg-green-700 p-6 text-center">
-            <img 
-              src="../src/assets/susaruLogo.png" 
-              alt="Susaru Agro Plantation" 
+            <img
+              src="../src/assets/susaruLogo.png"
+              alt="Susaru Agro Plantation"
               className="h-20 mx-auto mb-4"
+              onError={(e) => {
+                e.target.onerror = null;
+                e.target.src = "https://via.placeholder.com/200x80?text=Susaru+Agro";
+              }}
             />
             <h1 className="text-2xl font-bold text-white">Staff Portal</h1>
             <p className="text-green-100 mt-1">Access the Susaru Agro management system</p>
@@ -173,9 +216,9 @@ const Login = () => {
             </div>
           </div>
         </div>
-        
+
         <div className="mt-6 text-center text-xs text-white">
-          <p>Â© {new Date().getFullYear()} Susaru Agro Plantation. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} Susaru Agro Plantation. All rights reserved.</p>
         </div>
       </div>
     </div>

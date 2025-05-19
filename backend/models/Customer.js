@@ -11,10 +11,10 @@ const Customer = sequelize.define(
       autoIncrement: true,
     },
     title: { type: DataTypes.STRING(5) },
-    name_with_ini: { type: DataTypes.STRING(100), allowNull: false },
+    name_with_ini: { type: DataTypes.STRING(100), allowNull: true },
     full_name: { type: DataTypes.STRING(255), allowNull: false },
-    f_name: { type: DataTypes.STRING(50), allowNull: false },
-    l_name: { type: DataTypes.STRING(50), allowNull: false },
+    f_name: { type: DataTypes.STRING(50), allowNull: true },
+    l_name: { type: DataTypes.STRING(50), allowNull: true },
     date_of_birth: { type: DataTypes.DATE },
     nic_number: { type: DataTypes.STRING(12) },
     add_line_1: { type: DataTypes.TEXT },
@@ -38,7 +38,7 @@ const Customer = sequelize.define(
 Customer.associate = (models) => {
   Customer.hasMany(models.CustomerLand, {
     foreignKey: 'customer_id',
-    as: 'lands'
+    as: 'customer_land'
   });
 };
 

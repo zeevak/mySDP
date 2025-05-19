@@ -3,7 +3,7 @@ const { DataTypes } = require('sequelize');
 const sequelize = require('../config/db');
 const Role = require('./Role');
 
-const Staff = sequelize.define('Staff', {
+const Staff = sequelize.define('staff', {
   staff_id: {
     type: DataTypes.INTEGER,
     primaryKey: true,
@@ -34,11 +34,8 @@ const Staff = sequelize.define('Staff', {
   phone_no: {
     type: DataTypes.STRING,
     allowNull: true
-  },
-  status: {
-    type: DataTypes.STRING,
-    defaultValue: 'Active'
   }
+  
 }, {
   tableName: 'staff',
   timestamps: false

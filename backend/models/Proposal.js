@@ -21,11 +21,6 @@ const Proposal = sequelize.define(
     },
     installment_count: { type: DataTypes.INTEGER },
     installment_amount: { type: DataTypes.DECIMAL(10, 2) },
-    beneficiaries: { type: DataTypes.TEXT },
-    contract_signed: {
-      type: DataTypes.BOOLEAN,
-      defaultValue: false
-    },
     proposal_date: {
       type: DataTypes.DATE,
       defaultValue: DataTypes.NOW

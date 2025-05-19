@@ -17,6 +17,7 @@ app.use("/api/staff", require("./routes/staffRoutes"));
 app.use("/api/land", require("./routes/landRoutes"));
 app.use("/api/project", require("./routes/projectRoutes"));
 app.use("/api/message", require("./routes/messageRoutes"));
+app.use("/api/progress", require("./routes/progressRoutes"));
 
 io.on("connection", (socket) => {
   console.log("User connected");

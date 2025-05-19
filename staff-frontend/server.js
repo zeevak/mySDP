@@ -4,11 +4,15 @@
 import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import cors from 'cors'; // Import the cors package
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
+
+// Enable CORS for all routes
+app.use(cors());
 
 // Serve static files from the React app
 app.use(express.static(path.join(__dirname, 'dist')));
