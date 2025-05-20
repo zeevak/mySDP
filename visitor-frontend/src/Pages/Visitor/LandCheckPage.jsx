@@ -6,47 +6,21 @@ import axios from 'axios';
 import Header from '../../Components/Header';
 import Footer from '../../Components/Footer';
 import ResultsCalculation from './ResultsCalculation';
-
-// --- Dropdown data ---
-const provinces = [
-  "Central Province",
-  "Eastern Province",
-  "North Central Province",
-  "Northern Province",
-  "North Western Province",
-  "Sabaragamuwa Province",
-  "Southern Province",
-  "Uva Province",
-  "Western Province"
-];
-
-const districtsMap = {
-  "Central Province": ["Kandy", "Matale", "Nuwara Eliya"],
-  "Eastern Province": ["Ampara", "Batticaloa", "Trincomalee"],
-  "North Central Province": ["Anuradhapura", "Polonnaruwa"],
-  "Northern Province": ["Jaffna", "Kilinochchi", "Mannar", "Mullaitivu", "Vavuniya"],
-  "North Western Province": ["Kurunegala", "Puttalam"],
-  "Sabaragamuwa Province": ["Kegalle", "Ratnapura"],
-  "Southern Province": ["Galle", "Hambantota", "Matara"],
-  "Uva Province": ["Badulla", "Monaragala"],
-  "Western Province": ["Colombo", "Gampaha", "Kalutara"]
-};
-
-const citiesMap = {
-  "Kandy": ["Kandy City", "Peradeniya", "Katugastota", "Gampola"],
-  "Matale": ["Matale City", "Dambulla", "Galewela", "Naula"],
-  "Colombo": ["Colombo Fort", "Dehiwala", "Mount Lavinia", "Nugegoda"],
-  // Add more cities for each district
-};
-
-const landShapes = ["Flat", "Gentle Slope", "Steep Slope", "Terraced", "Undulating"];
-const soilTypes = ["Clay", "Sand", "Loam", "Silt", "Peat", "Salt", "Chalk"];
+import {
+  provinces,
+  districtsMap,
+  climateZones,
+  landShapes,
+  soilTypes,
+  loadCitiesFromCSV
+} from '../../utils/locationData';
 
 const AgarwoodCalculator = () => {
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
   const [districts, setDistricts] = useState([]);
   const [cities, setCities] = useState([]);
+  const [citiesMap, setCitiesMap] = useState({});
   const [result, setResult] = useState(null);
   const [isEligible, setIsEligible] = useState(false);
   const [warnings, setWarnings] = useState({});
@@ -149,12 +123,35 @@ const AgarwoodCalculator = () => {
     setCities([]);
   };
 
+  // Load cities data from CSV
+  useEffect(() => {
+    const loadCities = async () => {
+      try {
+        const citiesData = await loadCitiesFromCSV();
+        console.log('Cities data loaded:', citiesData);
+        setCitiesMap(citiesData);
+      } catch (error) {
+        console.error('Error loading cities data:', error);
+      }
+    };
+
+    loadCities();
+  }, []);
+
   // Handle district change
   const handleDistrictChange = (e) => {
     const district = e.target.value;
     formik.setFieldValue('district', district, true);
     formik.setFieldValue('city', '', true);
-    setCities(citiesMap[district] || []);
+
+    // Update cities based on selected district
+    if (district && citiesMap[district]) {
+      console.log(`Setting cities for district ${district}:`, citiesMap[district]);
+      setCities(citiesMap[district]);
+    } else {
+      console.log(`No cities found for district ${district}`);
+      setCities([]);
+    }
   };
 
   // Check soil type and set warnings
@@ -679,14 +676,7 @@ const AgarwoodCalculator = () => {
                   <div className="mb-4">
                     <label className="block text-sm font-medium text-gray-700 mb-2">Select the climate zone of your land:*</label>
                     <div className="space-y-2">
-                      {[
-                        'low country wet zone',
-                        'montane wet zone',
-                        'montane dry zone',
-                        'intermediate zone',
-                        'dry mixed zone',
-                        'other'
-                      ].map((zone) => (
+                      {climateZones.map((zone) => (
                         <label key={zone} className="flex items-center p-3 border rounded-md hover:bg-green-50">
                           <input
                             type="radio"

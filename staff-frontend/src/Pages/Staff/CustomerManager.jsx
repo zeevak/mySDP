@@ -13,6 +13,8 @@ const CustomerManager = () => {
   const [selectedCustomer, setSelectedCustomer] = useState(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [customerToDelete, setCustomerToDelete] = useState(null);
+  const [customerLands, setCustomerLands] = useState([]);
+  const [landsLoading, setLandsLoading] = useState(false);
 
   // Fetch customers
   useEffect(() => {
@@ -45,6 +47,30 @@ const CustomerManager = () => {
   // Handle customer selection for details view
   const handleViewDetails = (customer) => {
     setSelectedCustomer(customer);
+    fetchCustomerLands(customer.customer_id);
+  };
+
+  // Fetch customer lands
+  const fetchCustomerLands = async (customerId) => {
+    try {
+      setLandsLoading(true);
+      const token = localStorage.getItem('token');
+
+      const response = await axios.get(`http://localhost:5001/api/staff/customers/${customerId}/lands`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      if (response.data && response.data.success) {
+        setCustomerLands(response.data.data);
+      } else {
+        console.error('Failed to fetch customer lands');
+      }
+
+      setLandsLoading(false);
+    } catch (err) {
+      console.error('Error fetching customer lands:', err);
+      setLandsLoading(false);
+    }
   };
 
   // Handle customer edit
@@ -217,10 +243,16 @@ const CustomerManager = () => {
             <div className="bg-white shadow-md rounded-lg overflow-hidden mb-6">
               <div className="p-4 bg-gray-50 border-b flex justify-between items-center">
                 <h2 className="text-lg font-semibold text-gray-800">Customer Details</h2>
-                <div>
+                <div className="flex space-x-2">
+                  <button
+                    onClick={() => navigate(`/staff/customers/${selectedCustomer.customer_id}/add-land`)}
+                    className="bg-blue-600 text-white px-3 py-1 rounded-md hover:bg-blue-700 transition duration-200"
+                  >
+                    Add New Land
+                  </button>
                   <button
                     onClick={() => handleEdit(selectedCustomer.customer_id)}
-                    className="bg-green-600 text-white px-3 py-1 rounded-md hover:bg-green-700 transition duration-200 mr-2"
+                    className="bg-green-600 text-white px-3 py-1 rounded-md hover:bg-green-700 transition duration-200"
                   >
                     Edit
                   </button>
@@ -318,6 +350,62 @@ const CustomerManager = () => {
                       <p className="text-gray-800">{formatDate(selectedCustomer.created_at)}</p>
                     </div>
                   </div>
+                </div>
+
+                {/* Customer Lands Section */}
+                <div className="mt-6">
+                  <div className="flex justify-between items-center mb-4">
+                    <h3 className="text-md font-semibold text-gray-700">Customer Lands</h3>
+                    <button
+                      onClick={() => navigate(`/staff/customers/${selectedCustomer.customer_id}/add-land`)}
+                      className="text-sm bg-blue-600 text-white px-3 py-1 rounded-md hover:bg-blue-700 transition duration-200"
+                    >
+                      Add New Land
+                    </button>
+                  </div>
+
+                  {landsLoading ? (
+                    <div className="flex justify-center items-center h-24">
+                      <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-green-500"></div>
+                    </div>
+                  ) : customerLands.length === 0 ? (
+                    <div className="bg-gray-50 p-4 rounded-md text-gray-500 text-center">
+                      No lands registered for this customer.
+                    </div>
+                  ) : (
+                    <div className="overflow-x-auto border rounded-md">
+                      <table className="min-w-full divide-y divide-gray-200">
+                        <thead className="bg-gray-50">
+                          <tr>
+                            <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">ID</th>
+                            <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Location</th>
+                            <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Climate Zone</th>
+                            <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Size (acres)</th>
+                            <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Soil Type</th>
+                          </tr>
+                        </thead>
+                        <tbody className="bg-white divide-y divide-gray-200">
+                          {customerLands.map((land) => (
+                            <tr key={land.customer_land_id} className="hover:bg-gray-50">
+                              <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-500">{land.customer_land_id}</td>
+                              <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-500">
+                                {[land.city, land.district, land.province].filter(Boolean).join(', ')}
+                              </td>
+                              <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-500">
+                                {land.climate_zone || 'N/A'}
+                              </td>
+                              <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-500">
+                                {land.land_size}
+                              </td>
+                              <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-500">
+                                {land.soil_type || 'N/A'}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

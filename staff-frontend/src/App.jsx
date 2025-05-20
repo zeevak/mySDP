@@ -10,6 +10,9 @@ import StaffManager from './Pages/Admin/StaffManager';
 import MessagesPage from './Pages/Staff/MessagesPage';
 import AddCustomer from './Pages/Staff/AddCustomer';
 import EditCustomer from './Pages/Staff/EditCustomer';
+import AddCustomerLand from './Pages/Staff/AddCustomerLand';
+import LandManager from './Pages/Staff/LandManager';
+import EditLand from './Pages/Staff/EditLand';
 import DashboardRedirect from './Components/DashboardRedirect';
 
 // Protected route component
@@ -54,6 +57,22 @@ function App() {
         <Route
           path="/staff/edit-customer/:id"
           element={<ProtectedRoute element={<EditCustomer />} allowedRoles={['Staff', 'Admin']} />}
+        />
+        <Route
+          path="/staff/add-land"
+          element={<ProtectedRoute element={<AddCustomerLand />} allowedRoles={['Staff', 'Admin']} />}
+        />
+        <Route
+          path="/staff/customers/:customerId/add-land"
+          element={<ProtectedRoute element={<AddCustomerLand />} allowedRoles={['Staff', 'Admin']} />}
+        />
+        <Route
+          path="/staff/lands"
+          element={<ProtectedRoute element={<LandManager />} allowedRoles={['Staff', 'Admin']} />}
+        />
+        <Route
+          path="/staff/edit-land/:id"
+          element={<ProtectedRoute element={<EditLand />} allowedRoles={['Staff', 'Admin']} />}
         />
         <Route
           path="/staff/inventory"

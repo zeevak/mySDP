@@ -232,6 +232,105 @@ const customerManagementController = {
         error: 'Failed to delete customer'
       });
     }
+  },
+
+  /**
+   * Get customer lands
+   * @route GET /api/staff/customers/:customerId/lands
+   * @access Private (Staff, Admin)
+   */
+  getCustomerLands: async (req, res) => {
+    try {
+      const { customerId } = req.params;
+
+      // Check if customer exists
+      const customer = await Customer.findByPk(customerId);
+      if (!customer) {
+        return res.status(404).json({
+          success: false,
+          error: 'Customer not found'
+        });
+      }
+
+      // Fetch customer lands
+      const customerLands = await CustomerLand.findAll({
+        where: { customer_id: customerId }
+      });
+
+      res.status(200).json({
+        success: true,
+        count: customerLands.length,
+        data: customerLands
+      });
+    } catch (err) {
+      console.error('Error fetching customer lands:', err);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to retrieve customer lands'
+      });
+    }
+  },
+
+  /**
+   * Add new customer land
+   * @route POST /api/staff/customers/:customerId/lands
+   * @access Private (Staff, Admin)
+   */
+  addCustomerLand: async (req, res) => {
+    try {
+      const { customerId } = req.params;
+      const {
+        province,
+        district,
+        city,
+        climate_zone,
+        land_shape,
+        has_water,
+        soil_type,
+        has_stones,
+        has_landslide_risk,
+        has_forestry,
+        land_size
+      } = req.body;
+
+      // Check if customer exists
+      const customer = await Customer.findByPk(customerId);
+      if (!customer) {
+        return res.status(404).json({
+          success: false,
+          error: 'Customer not found'
+        });
+      }
+
+      // Create new customer land
+      const newLand = await CustomerLand.create({
+        customer_id: customerId,
+        province,
+        district,
+        city,
+        climate_zone,
+        land_shape,
+        has_water,
+        soil_type,
+        has_stones,
+        has_landslide_risk,
+        has_forestry,
+        land_size
+      });
+
+      res.status(201).json({
+        success: true,
+        message: 'Customer land added successfully',
+        data: newLand
+      });
+    } catch (err) {
+      console.error('Error adding customer land:', err);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to add customer land',
+        details: err.message
+      });
+    }
   }
 };
 

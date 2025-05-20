@@ -19,4 +19,8 @@ router.get('/:id', customerManagementController.getCustomerById);
 router.put('/:id', customerManagementController.updateCustomer);
 router.delete('/:id', customerManagementController.deleteCustomer);
 
+// Customer land management routes
+router.get('/:customerId/lands', customerManagementController.getCustomerLands);
+router.post('/:customerId/lands', customerManagementController.addCustomerLand);
+
 module.exports = router;

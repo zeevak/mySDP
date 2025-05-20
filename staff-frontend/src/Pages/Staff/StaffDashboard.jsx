@@ -100,12 +100,18 @@ const StaffDashboard = () => {
               {/* Quick Actions */}
               <div className="bg-white p-6 rounded-lg shadow-md mb-8">
                 <h2 className="text-lg font-semibold text-gray-800 mb-4">Quick Actions</h2>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                   <Link
                     to="/staff/add-customer"
                     className="bg-green-100 hover:bg-green-200 text-green-800 py-3 px-4 rounded-md transition duration-200 text-left"
                   >
                     <span className="font-medium">Add New Customer</span>
+                  </Link>
+                  <Link
+                    to="/staff/lands"
+                    className="bg-yellow-100 hover:bg-yellow-200 text-yellow-800 py-3 px-4 rounded-md transition duration-200 text-left"
+                  >
+                    <span className="font-medium">Manage Lands</span>
                   </Link>
                   <Link
                     to="/staff/submit-proposal"

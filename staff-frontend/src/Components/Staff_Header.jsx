@@ -5,6 +5,7 @@ import axios from 'axios';
 const Staff_Header = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [username, setUsername] = useState('');
+  const [userRole, setUserRole] = useState('');
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
@@ -26,6 +27,12 @@ const Staff_Header = () => {
         setUsername(userData.username);
         localStorage.setItem('username', userData.username);
 
+        // Update role in state and localStorage if available
+        if (userData.role) {
+          setUserRole(userData.role);
+          localStorage.setItem('role', userData.role);
+        }
+
         // Update user data in localStorage
         localStorage.setItem('user', JSON.stringify(userData));
       }
@@ -43,6 +50,12 @@ const Staff_Header = () => {
       // Get username from localStorage
       const storedUsername = localStorage.getItem('username');
 
+      // Get user role from localStorage
+      const storedRole = localStorage.getItem('role');
+      if (storedRole) {
+        setUserRole(storedRole);
+      }
+
       // If username is not in localStorage, try to get it from the user object
       if (!storedUsername) {
         try {
@@ -53,6 +66,11 @@ const Staff_Header = () => {
               setUsername(user.username);
               // Store it for future use
               localStorage.setItem('username', user.username);
+
+              // Set role if available in user object
+              if (user.role) {
+                setUserRole(user.role);
+              }
             } else {
               // If no username in user object, fetch from backend
               fetchUserProfile();
@@ -71,6 +89,7 @@ const Staff_Header = () => {
       }
     } else {
       setIsLoggedIn(false);
+      setUserRole('');
     }
   }, [location]);
 
@@ -96,8 +115,13 @@ const Staff_Header = () => {
       <div className="container mx-auto px-4 py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center">
-            <Link to={isLoggedIn ? '/dashboard' : '/login'} className="flex items-center">
-              <img src="/logo.png" alt="Susaru Agro" className="h-8 mr-3" />
+            <Link
+              to={isLoggedIn
+                ? (userRole === 'Admin' ? '/admin/dashboard' : '/staff/dashboard')
+                : '/login'}
+              className="flex items-center"
+            >
+              <img src="/src/assets/susaruLogo.png" alt="Susaru Agro" className="h-8 mr-3" />
               <span className="text-xl font-semibold">Susaru Agro</span>
             </Link>
           </div>
@@ -109,7 +133,7 @@ const Staff_Header = () => {
                   <ul className="md:flex space-y-2 md:space-y-0 md:space-x-6">
                     <li>
                       <Link
-                        to="/staff/dashboard"
+                        to={userRole === 'Admin' ? '/admin/dashboard' : '/staff/dashboard'}
                         className={`block px-3 py-2 rounded-md ${location.pathname.includes('/dashboard') ? 'bg-green-700' : 'hover:bg-green-700'} transition duration-200`}
                       >
                         Dashboard
@@ -121,6 +145,14 @@ const Staff_Header = () => {
                         className={`block px-3 py-2 rounded-md ${location.pathname.includes('/customers') ? 'bg-green-700' : 'hover:bg-green-700'} transition duration-200`}
                       >
                         Customers
+                      </Link>
+                    </li>
+                    <li>
+                      <Link
+                        to="/staff/lands"
+                        className={`block px-3 py-2 rounded-md ${location.pathname.includes('/lands') ? 'bg-green-700' : 'hover:bg-green-700'} transition duration-200`}
+                      >
+                        Lands
                       </Link>
                     </li>
                     <li>

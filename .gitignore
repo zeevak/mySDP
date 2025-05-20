@@ -34,9 +34,6 @@ visitor-frontend/.env
 backend/.env
 *.local
 
-# Database backups
-*.sql
-
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

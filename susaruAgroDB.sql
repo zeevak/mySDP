@@ -64,7 +64,7 @@ CREATE TABLE staff (
     username VARCHAR(255) UNIQUE,
     password_hash VARCHAR(255) NOT NULL,
     email VARCHAR(255) UNIQUE,
-    phone_no VARCHAR(10);
+    phone_no VARCHAR(10),
     FOREIGN KEY (role_id) REFERENCES role(role_id) ON DELETE SET NULL
 );
 
@@ -72,7 +72,7 @@ CREATE TABLE staff (
 CREATE TABLE proposal (
     proposal_id VARCHAR(10) PRIMARY KEY DEFAULT CONCAT('PRO', NEXTVAL('proposal_id_seq')),
     customer_id VARCHAR(10) NOT NULL,
-    payment_mode VARCHAR(12) CHECK (payment_mode IN ('full', 'installment')),
+    payment_mode VARCHAR(12) CHECK (payment_mode IN ('full', 'installments')),
     installment_count INT DEFAULT NULL,
     installment_amount DECIMAL(10, 2) DEFAULT NULL,
     proposal_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

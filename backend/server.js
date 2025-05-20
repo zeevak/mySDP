@@ -25,6 +25,7 @@ app.use("/api/inventory", require("./routes/inventoryRoutes"));
 app.use("/api/shipment", require("./routes/shipmentRoutes"));
 app.use("/api/dashboard", require("./routes/dashboardRoutes"));
 app.use("/api/staff/customers", require("./routes/staffCustomerRoutes"));
+app.use("/api/staff/lands", require("./routes/staffLandRoutes"));
 
 io.on("connection", (socket) => {
   console.log("User connected");
