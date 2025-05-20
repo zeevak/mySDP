@@ -109,15 +109,15 @@ const Staff_Header = () => {
                   <ul className="md:flex space-y-2 md:space-y-0 md:space-x-6">
                     <li>
                       <Link
-                        to="/dashboard"
-                        className={`block px-3 py-2 rounded-md ${location.pathname === '/dashboard' ? 'bg-green-700' : 'hover:bg-green-700'} transition duration-200`}
+                        to="/staff/dashboard"
+                        className={`block px-3 py-2 rounded-md ${location.pathname.includes('/dashboard') ? 'bg-green-700' : 'hover:bg-green-700'} transition duration-200`}
                       >
                         Dashboard
                       </Link>
                     </li>
                     <li>
                       <Link
-                        to="/customers"
+                        to="/staff/customers"
                         className={`block px-3 py-2 rounded-md ${location.pathname.includes('/customers') ? 'bg-green-700' : 'hover:bg-green-700'} transition duration-200`}
                       >
                         Customers
@@ -125,10 +125,18 @@ const Staff_Header = () => {
                     </li>
                     <li>
                       <Link
-                        to="/inventory"
+                        to="/staff/inventory"
                         className={`block px-3 py-2 rounded-md ${location.pathname.includes('/inventory') ? 'bg-green-700' : 'hover:bg-green-700'} transition duration-200`}
                       >
                         Inventory
+                      </Link>
+                    </li>
+                    <li>
+                      <Link
+                        to="/staff/shipments"
+                        className={`block px-3 py-2 rounded-md ${location.pathname.includes('/shipments') ? 'bg-green-700' : 'hover:bg-green-700'} transition duration-200`}
+                      >
+                        Plant Shipments
                       </Link>
                     </li>
                     <li>

@@ -5,6 +5,8 @@ const { Server } = require("socket.io");
 const sequelize = require("./config/db");
 require("dotenv").config();
 
+console.log("Server starting...");
+
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server, { cors: { origin: "http://localhost:5173" } });
@@ -19,6 +21,8 @@ app.use("/api/land", require("./routes/landRoutes"));
 app.use("/api/project", require("./routes/projectRoutes"));
 app.use("/api/message", require("./routes/messageRoutes"));
 app.use("/api/progress", require("./routes/progressRoutes"));
+app.use("/api/inventory", require("./routes/inventoryRoutes"));
+app.use("/api/shipment", require("./routes/shipmentRoutes"));
 
 io.on("connection", (socket) => {
   console.log("User connected");

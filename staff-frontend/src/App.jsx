@@ -5,6 +5,7 @@ import StaffDashboard from './Pages/Staff/StaffDashboard';
 import AdminDashboard from './Pages/Admin/AdminDashboard';
 import CustomerManager from './Pages/Staff/CustomerManager';
 import InventoryManager from './Pages/Staff/InventoryManager';
+import PlantShipment from './Pages/Staff/PlantShipment';
 import StaffManager from './Pages/Admin/StaffManager';
 import MessagesPage from './Pages/Staff/MessagesPage';
 import DashboardRedirect from './Components/DashboardRedirect';
@@ -47,6 +48,10 @@ function App() {
         <Route
           path="/staff/inventory"
           element={<ProtectedRoute element={<InventoryManager />} allowedRoles={['Staff', 'Admin']} />}
+        />
+        <Route
+          path="/staff/shipments"
+          element={<ProtectedRoute element={<PlantShipment />} allowedRoles={['Staff', 'Admin']} />}
         />
         <Route
           path="/staff/messages"

@@ -13,6 +13,7 @@ const Notification = require('./Notification');
 const Request = require('./Request');
 const Project = require('./Project');
 const Progress = require('./progress');
+const PlantShipment = require('./PlantShipment');
 
 // Initialize associations
 const models = {
@@ -29,7 +30,8 @@ const models = {
   Notification,
   Request,
   Project,
-  Progress
+  Progress,
+  PlantShipment
 };
 
 // Set up relationships between models

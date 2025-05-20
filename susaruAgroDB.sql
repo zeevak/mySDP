@@ -95,12 +95,8 @@ CREATE TABLE project (
 -- Table: Inventory
 CREATE TABLE inventory (
     inventory_id VARCHAR(10) PRIMARY KEY DEFAULT CONCAT('INV', NEXTVAL('inventory_id_seq')),
-    staff_id VARCHAR(10),
     item_name VARCHAR(255) NOT NULL,
-    item_type VARCHAR(15) CHECK (item_type IN ('Plant', 'Fertilizer')),
-    quantity INT NOT NULL,
-    price DECIMAL(10, 2) NOT NULL,
-    FOREIGN KEY (staff_id) REFERENCES staff(staff_id) ON DELETE SET NULL
+    quantity INT NOT NULL DEFAULT 0
 );
 
 -- Table: Payment
@@ -190,6 +186,21 @@ CREATE INDEX idx_message_email ON message(email);
 
 -- Create an index on created_at for faster sorting
 CREATE INDEX idx_message_created_at ON message(created_at);
+
+-- Table: Plant Shipment
+CREATE TABLE plant_shipment (
+    shipment_id SERIAL PRIMARY KEY,
+    staff_id VARCHAR(10) NOT NULL,
+    customer_id VARCHAR(10) NOT NULL,
+    inventory_id VARCHAR(10) NOT NULL,
+    plant_name VARCHAR(255) NOT NULL,
+    quantity INT NOT NULL,
+    shipment_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    notes TEXT,
+    FOREIGN KEY (staff_id) REFERENCES staff(staff_id) ON DELETE RESTRICT,
+    FOREIGN KEY (customer_id) REFERENCES customer(customer_id) ON DELETE RESTRICT,
+    FOREIGN KEY (inventory_id) REFERENCES inventory(inventory_id) ON DELETE RESTRICT
+);
 
 -- Table: Progress
 CREATE TABLE progress (
