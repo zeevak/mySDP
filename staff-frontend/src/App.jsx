@@ -8,6 +8,8 @@ import InventoryManager from './Pages/Staff/InventoryManager';
 import PlantShipment from './Pages/Staff/PlantShipment';
 import StaffManager from './Pages/Admin/StaffManager';
 import MessagesPage from './Pages/Staff/MessagesPage';
+import AddCustomer from './Pages/Staff/AddCustomer';
+import EditCustomer from './Pages/Staff/EditCustomer';
 import DashboardRedirect from './Components/DashboardRedirect';
 
 // Protected route component
@@ -44,6 +46,14 @@ function App() {
         <Route
           path="/staff/customers"
           element={<ProtectedRoute element={<CustomerManager />} allowedRoles={['Staff', 'Admin']} />}
+        />
+        <Route
+          path="/staff/add-customer"
+          element={<ProtectedRoute element={<AddCustomer />} allowedRoles={['Staff', 'Admin']} />}
+        />
+        <Route
+          path="/staff/edit-customer/:id"
+          element={<ProtectedRoute element={<EditCustomer />} allowedRoles={['Staff', 'Admin']} />}
         />
         <Route
           path="/staff/inventory"

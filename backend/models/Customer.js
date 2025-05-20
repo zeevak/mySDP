@@ -6,9 +6,9 @@ const Customer = sequelize.define(
   "customer",
   {
     customer_id: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.STRING(10),
       primaryKey: true,
-      autoIncrement: true,
+      defaultValue: sequelize.literal("concat('CUS', nextval('customer_id_seq'::regclass))"),
     },
     title: { type: DataTypes.STRING(5) },
     name_with_ini: { type: DataTypes.STRING(100), allowNull: true },

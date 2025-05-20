@@ -1,43 +1,55 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import StaffHeader from '../../Components/Staff_Header';
 import StaffFooter from '../../Components/Staff_Footer';
 
 const StaffDashboard = () => {
+  const navigate = useNavigate();
   const [stats, setStats] = useState({
     customers: 0,
-    inventory: 0,
-    orders: 0,
-    revenue: 0
+    inventory: 0
   });
 
+  const [activities, setActivities] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    // Simulate fetching dashboard data
+    // Fetch dashboard data from API
     const fetchDashboardData = async () => {
       try {
         setLoading(true);
-        // In a real app, this would be an API call
-        // const response = await axios.get('/api/staff/dashboard', {
-        //   headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-        // });
+        const token = localStorage.getItem('token');
 
-        // Simulate API response
-        setTimeout(() => {
+        // Fetch dashboard stats
+        const statsResponse = await axios.get('http://localhost:5001/api/dashboard/stats', {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+
+        console.log('Dashboard stats response:', statsResponse.data);
+
+        if (statsResponse.data) {
           setStats({
-            customers: 124,
-            inventory: 57,
-            orders: 32,
-            revenue: 15750
+            customers: statsResponse.data.customers || 0,
+            inventory: statsResponse.data.inventory || 0
           });
-          setLoading(false);
-        }, 1000);
-      } catch (err) {
-        setError('Failed to load dashboard data');
+        }
+
+        // Fetch recent activities
+        const activityResponse = await axios.get('http://localhost:5001/api/dashboard/activity', {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+
+        if (activityResponse.data) {
+          setActivities(activityResponse.data);
+        }
+
         setLoading(false);
-        console.error(err);
+      } catch (err) {
+        console.error('Error fetching dashboard data:', err);
+        setError('Failed to load dashboard data. Please try again later.');
+        setLoading(false);
       }
     };
 
@@ -63,7 +75,7 @@ const StaffDashboard = () => {
           ) : (
             <>
               {/* Stats Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                 <div className="bg-white p-6 rounded-lg shadow-md">
                   <h3 className="text-gray-500 text-sm font-medium mb-2">Total Customers</h3>
                   <p className="text-3xl font-bold text-gray-800">{stats.customers}</p>
@@ -83,41 +95,30 @@ const StaffDashboard = () => {
                     </Link>
                   </div>
                 </div>
-
-                <div className="bg-white p-6 rounded-lg shadow-md">
-                  <h3 className="text-gray-500 text-sm font-medium mb-2">Recent Orders</h3>
-                  <p className="text-3xl font-bold text-gray-800">{stats.orders}</p>
-                  <div className="mt-2">
-                    <Link to="/staff/orders" className="text-green-600 text-sm hover:text-green-800">
-                      View all orders →
-                    </Link>
-                  </div>
-                </div>
-
-                <div className="bg-white p-6 rounded-lg shadow-md">
-                  <h3 className="text-gray-500 text-sm font-medium mb-2">Monthly Revenue</h3>
-                  <p className="text-3xl font-bold text-gray-800">${stats.revenue.toLocaleString()}</p>
-                  <div className="mt-2">
-                    <span className="text-green-600 text-sm">
-                      +12% from last month
-                    </span>
-                  </div>
-                </div>
               </div>
 
               {/* Quick Actions */}
               <div className="bg-white p-6 rounded-lg shadow-md mb-8">
                 <h2 className="text-lg font-semibold text-gray-800 mb-4">Quick Actions</h2>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <button className="bg-green-100 hover:bg-green-200 text-green-800 py-3 px-4 rounded-md transition duration-200 text-left">
+                  <Link
+                    to="/staff/add-customer"
+                    className="bg-green-100 hover:bg-green-200 text-green-800 py-3 px-4 rounded-md transition duration-200 text-left"
+                  >
                     <span className="font-medium">Add New Customer</span>
-                  </button>
-                  <button className="bg-blue-100 hover:bg-blue-200 text-blue-800 py-3 px-4 rounded-md transition duration-200 text-left">
-                    <span className="font-medium">Update Inventory</span>
-                  </button>
-                  <button className="bg-purple-100 hover:bg-purple-200 text-purple-800 py-3 px-4 rounded-md transition duration-200 text-left">
-                    <span className="font-medium">Process Order</span>
-                  </button>
+                  </Link>
+                  <Link
+                    to="/staff/submit-proposal"
+                    className="bg-blue-100 hover:bg-blue-200 text-blue-800 py-3 px-4 rounded-md transition duration-200 text-left"
+                  >
+                    <span className="font-medium">Submit Proposal</span>
+                  </Link>
+                  <Link
+                    to="/staff/start-project"
+                    className="bg-purple-100 hover:bg-purple-200 text-purple-800 py-3 px-4 rounded-md transition duration-200 text-left"
+                  >
+                    <span className="font-medium">Start Project</span>
+                  </Link>
                 </div>
               </div>
 
@@ -125,22 +126,38 @@ const StaffDashboard = () => {
               <div className="bg-white p-6 rounded-lg shadow-md">
                 <h2 className="text-lg font-semibold text-gray-800 mb-4">Recent Activity</h2>
                 <div className="space-y-4">
-                  <div className="border-l-4 border-green-500 pl-4 py-1">
-                    <p className="text-sm text-gray-600">Today, 10:30 AM</p>
-                    <p className="font-medium">New customer registered: John Smith</p>
-                  </div>
-                  <div className="border-l-4 border-blue-500 pl-4 py-1">
-                    <p className="text-sm text-gray-600">Yesterday, 3:45 PM</p>
-                    <p className="font-medium">Inventory updated: Tea stock +200kg</p>
-                  </div>
-                  <div className="border-l-4 border-yellow-500 pl-4 py-1">
-                    <p className="text-sm text-gray-600">Yesterday, 11:20 AM</p>
-                    <p className="font-medium">Order #1234 status changed to "Shipped"</p>
-                  </div>
-                  <div className="border-l-4 border-purple-500 pl-4 py-1">
-                    <p className="text-sm text-gray-600">Aug 15, 2023, 9:15 AM</p>
-                    <p className="font-medium">New payment received: $1,250.00</p>
-                  </div>
+                  {activities && activities.length > 0 ? (
+                    activities.map((activity, index) => {
+                      // Determine border color based on activity type
+                      let borderColor = 'border-gray-500';
+                      if (activity.type === 'Customer') borderColor = 'border-green-500';
+                      else if (activity.type === 'Project') borderColor = 'border-blue-500';
+                      else if (activity.type === 'Message') borderColor = 'border-yellow-500';
+                      else if (activity.type === 'Request') borderColor = 'border-purple-500';
+
+                      // Format date
+                      const date = new Date(activity.timestamp);
+                      const formattedDate = new Intl.DateTimeFormat('en-US', {
+                        month: 'short',
+                        day: 'numeric',
+                        year: 'numeric',
+                        hour: 'numeric',
+                        minute: 'numeric',
+                        hour12: true
+                      }).format(date);
+
+                      return (
+                        <div key={index} className={`border-l-4 ${borderColor} pl-4 py-1`}>
+                          <p className="text-sm text-gray-600">{formattedDate}</p>
+                          <p className="font-medium">{activity.description}: {activity.user}</p>
+                        </div>
+                      );
+                    })
+                  ) : (
+                    <div className="text-center py-4 text-gray-500">
+                      No recent activities to display
+                    </div>
+                  )}
                 </div>
               </div>
             </>

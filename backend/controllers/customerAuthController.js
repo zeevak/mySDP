@@ -11,6 +11,8 @@ const { Op } = require("sequelize");
 // Import database models
 const Customer = require("../models/Customer");
 const CustomerLand = require("../models/CustomerLand");
+// Import email service
+const emailService = require("../utils/emailService");
 // Load environment variables
 require("dotenv").config();
 
@@ -22,22 +24,28 @@ require("dotenv").config();
  */
 exports.register = async (req, res) => {
   try {
-    const { full_name, email, password, nic_number } = req.body;
-    
-    // Extract first name and last name from full_name
-    const nameParts = full_name.split(' ');
-    const f_name = nameParts[0];
-    const l_name = nameParts.length > 1 ? nameParts[nameParts.length - 1] : '';
-    
-    // Generate name with initials (e.g., "J. Smith")
-    let name_with_ini = '';
-    if (nameParts.length > 1) {
-      const initials = nameParts.slice(0, -1).map(part => `${part[0]}.`).join(' ');
-      name_with_ini = `${initials} ${l_name}`;
-    } else {
-      name_with_ini = full_name;
-    }
-    
+    console.log('Customer registration request body:', req.body);
+
+    const {
+      title,
+      name_with_ini,
+      full_name,
+      f_name,
+      l_name,
+      date_of_birth,
+      nic_number,
+      add_line_1,
+      add_line_2,
+      add_line_3,
+      city,
+      district,
+      province,
+      phone_no_1,
+      phone_no_2,
+      email,
+      password
+    } = req.body;
+
     // Check if customer with this email already exists
     let customer = await Customer.findOne({ where: { email } });
     if (customer)
@@ -50,15 +58,25 @@ exports.register = async (req, res) => {
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    // Create new customer record in database
+    // Create new customer record in database with all fields
     customer = await Customer.create({
-      full_name,
+      title,
       name_with_ini,
+      full_name,
       f_name,
       l_name,
+      date_of_birth: date_of_birth || null,
+      nic_number,
+      add_line_1,
+      add_line_2,
+      add_line_3,
+      city,
+      district,
+      province,
+      phone_no_1,
+      phone_no_2,
       email,
       password_hash: hashedPassword,
-      nic_number,
     });
 
     // Generate JWT token for authentication
@@ -74,10 +92,22 @@ exports.register = async (req, res) => {
       name: customer.full_name,
     };
 
+    // Send welcome email with credentials
+    try {
+      await emailService.sendWelcomeEmail(customer, password);
+      console.log(`Welcome email sent to ${customer.email}`);
+
+      // Also notify staff about new customer registration
+      await emailService.sendStaffNotificationEmail(customer);
+    } catch (emailError) {
+      console.error('Error sending welcome email:', emailError);
+      // Continue with registration process even if email fails
+    }
+
     // Send successful response with token and user data
     res.json({
       success: true,
-      message: "Registration successful",
+      message: "Registration successful. Your login credentials have been sent to your email.",
       token,
       user: userData,
       expiresIn: 3600 // Token expiration in seconds
@@ -161,7 +191,7 @@ exports.getCurrentCustomer = async (req, res) => {
   try {
     // Get user ID from the JWT token (set by auth middleware)
     const userId = req.user.id;
-    
+
     // Fetch customer data including their lands
     const customer = await Customer.findByPk(userId, {
       include: [

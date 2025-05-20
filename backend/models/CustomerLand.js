@@ -7,12 +7,12 @@ const CustomerLand = sequelize.define(
   "customer_land",
   {
     customer_land_id: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.STRING(10),
       primaryKey: true,
-      autoIncrement: true,
+      defaultValue: sequelize.literal("concat('CL', nextval('customer_land_id_seq'::regclass))"),
     },
     customer_id: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.STRING(10),
       allowNull: false,
       references: { model: Customer, key: "customer_id" },
     },
@@ -28,7 +28,7 @@ const CustomerLand = sequelize.define(
     has_forestry: { type: DataTypes.BOOLEAN },
     land_size: { type: DataTypes.DECIMAL(10, 2) },
   },
-  { 
+  {
     timestamps: false,
     tableName: 'customer_land'
   }

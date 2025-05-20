@@ -23,6 +23,8 @@ app.use("/api/message", require("./routes/messageRoutes"));
 app.use("/api/progress", require("./routes/progressRoutes"));
 app.use("/api/inventory", require("./routes/inventoryRoutes"));
 app.use("/api/shipment", require("./routes/shipmentRoutes"));
+app.use("/api/dashboard", require("./routes/dashboardRoutes"));
+app.use("/api/staff/customers", require("./routes/staffCustomerRoutes"));
 
 io.on("connection", (socket) => {
   console.log("User connected");
