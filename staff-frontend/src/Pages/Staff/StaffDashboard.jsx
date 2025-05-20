@@ -108,10 +108,10 @@ const StaffDashboard = () => {
                     <span className="font-medium">Add New Customer</span>
                   </Link>
                   <Link
-                    to="/staff/lands"
+                    to="/staff/add-land"
                     className="bg-yellow-100 hover:bg-yellow-200 text-yellow-800 py-3 px-4 rounded-md transition duration-200 text-left"
                   >
-                    <span className="font-medium">Manage Lands</span>
+                    <span className="font-medium">Add New Land</span>
                   </Link>
                   <Link
                     to="/staff/submit-proposal"

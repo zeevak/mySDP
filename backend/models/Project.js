@@ -17,13 +17,8 @@ const Project = sequelize.define(
       references: { model: Staff, key: "staff_id" },
     },
     proposal_id: {
-      type: DataTypes.INTEGER,
-      references: { model: Proposal, key: "proposal_id" },
-    },
-    project_type: {
       type: DataTypes.STRING(10),
-      defaultValue: "Agarwood",
-      validate: { isIn: [["Agarwood", "Sandalwood", "Vanilla", "Other"]] },
+      references: { model: Proposal, key: "proposal_id" },
     },
     status: {
       type: DataTypes.STRING(10),

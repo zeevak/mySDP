@@ -19,6 +19,7 @@ app.use("/api/staff", require("./routes/staffRoutes"));
 app.use("/api/admin", require("./routes/adminRoutes"));
 app.use("/api/land", require("./routes/landRoutes"));
 app.use("/api/project", require("./routes/projectRoutes"));
+app.use("/api/proposal", require("./routes/proposalRoutes"));
 app.use("/api/message", require("./routes/messageRoutes"));
 app.use("/api/progress", require("./routes/progressRoutes"));
 app.use("/api/inventory", require("./routes/inventoryRoutes"));

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import { getAuthAxios, logout } from '../utils/authUtils';
 
 const Staff_Header = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -16,9 +16,8 @@ const Staff_Header = () => {
       const token = localStorage.getItem('token');
       if (!token) return;
 
-      const response = await axios.get('http://localhost:5001/api/staff/me', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const authAxios = getAuthAxios();
+      const response = await authAxios.get('/api/staff/me');
 
       if (response.data && response.data.success && response.data.data) {
         const userData = response.data.data;
@@ -38,6 +37,11 @@ const Staff_Header = () => {
       }
     } catch (error) {
       console.error('Error fetching user profile:', error);
+
+      // Handle unauthorized error
+      if (error.response && error.response.status === 401) {
+        logout(navigate);
+      }
     }
   };
 
@@ -94,13 +98,9 @@ const Staff_Header = () => {
   }, [location]);
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('role');
-    localStorage.removeItem('username');
-    localStorage.removeItem('user');
+    logout(navigate);
     setIsLoggedIn(false);
     setUsername('');
-    navigate('/login');
   };
 
   const toggleMenu = () => {
@@ -177,6 +177,14 @@ const Staff_Header = () => {
                         className={`block px-3 py-2 rounded-md ${location.pathname.includes('/projects') ? 'bg-green-700' : 'hover:bg-green-700'} transition duration-200`}
                       >
                         Projects
+                      </Link>
+                    </li>
+                    <li>
+                      <Link
+                        to="/staff/submit-proposal"
+                        className={`block px-3 py-2 rounded-md ${location.pathname.includes('/submit-proposal') ? 'bg-green-700' : 'hover:bg-green-700'} transition duration-200`}
+                      >
+                        Submit Proposal
                       </Link>
                     </li>
                   </ul>

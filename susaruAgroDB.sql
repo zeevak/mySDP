@@ -72,6 +72,9 @@ CREATE TABLE staff (
 CREATE TABLE proposal (
     proposal_id VARCHAR(10) PRIMARY KEY DEFAULT CONCAT('PRO', NEXTVAL('proposal_id_seq')),
     customer_id VARCHAR(10) NOT NULL,
+    project_type VARCHAR(10) NOT NULL CHECK (project_type IN ('Agarwood', 'Sandalwood', 'Vanilla', 'Other')),
+    project_duration INTEGER NOT NULL,
+    project_value DECIMAL(10, 2) NOT NULL,
     payment_mode VARCHAR(12) CHECK (payment_mode IN ('full', 'installments')),
     installment_count INT DEFAULT NULL,
     installment_amount DECIMAL(10, 2) DEFAULT NULL,
@@ -84,7 +87,6 @@ CREATE TABLE project (
     project_id VARCHAR(10) PRIMARY KEY DEFAULT CONCAT('PRJ', NEXTVAL('project_id_seq')),
     staff_id VARCHAR(10),
     proposal_id VARCHAR(10),
-    project_type VARCHAR(10) CHECK (project_type IN ('Agarwood', 'Sandalwood', 'Vanilla', 'Other')) DEFAULT 'Agarwood',
     status VARCHAR(10) CHECK (status IN ('Pending', 'Ongoing', 'Completed')) DEFAULT 'Pending',
     start_date DATE,
     end_date DATE,
