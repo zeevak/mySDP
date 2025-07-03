@@ -13,15 +13,7 @@ const menuItems = [
       { name: 'Agarwood', path: '/products/agarwood' },
     ],
   },
-  {
-    name: 'Investment',
-    path: '/investment',
-    dropdown: [
-      { name: 'Tea Estates', path: '/investment/tea' },
-      { name: 'Vanilla Cultivation', path: '/investment/vanilla' },
-      { name: 'ROI Calculator', path: '/investment/calculator' },
-    ],
-  },
+  { name: 'Investment', path: '/investment' },
   { name: 'Projects', path: '/projects' },
   { name: 'About', path: '/about' },
   { name: 'Contact', path: '/contact' },

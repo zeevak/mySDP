@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import axios from 'axios';
 import StaffHeader from '../../Components/Staff_Header';
 import StaffFooter from '../../Components/Staff_Footer';
 
 const StaffDashboard = () => {
-  const navigate = useNavigate();
   const [stats, setStats] = useState({
     customers: 0,
     inventory: 0

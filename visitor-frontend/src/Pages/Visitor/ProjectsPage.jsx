@@ -3,14 +3,14 @@ import Header from '../../Components/Header';
 import Footer from '../../Components/Footer';
 
 const ProjectsPage = () => {
-  // Sample project data for Susaru Agro Plantation
+  // Sample project data for plantation projects
   const projects = [
     {
       id: 1,
-      title: "Tea Estate Expansion",
-      category: "Tea Cultivation",
-      image: "/images/projects/tea-estate.jpg",
-      description: "Expansion of our premium tea cultivation across 200 hectares in the Nuwara Eliya region, implementing sustainable farming practices."
+      title: "Sandalwood Plantation Development",
+      category: "Sandalwood Cultivation",
+      image: "/images/projects/sandalwood-plantation.jpg",
+      description: "Expansion of premium sandalwood cultivation across 30 hectares, implementing sustainable farming practices with a 15-year yield cycle."
     },
     {
       id: 2,
@@ -28,10 +28,10 @@ const ProjectsPage = () => {
     },
     {
       id: 4,
-      title: "Rubber Processing Facility",
-      category: "Rubber Production",
-      image: "/images/projects/rubber-facility.jpg",
-      description: "State-of-the-art processing facility for producing FSC-certified rubber products including sole crepe, latex crepe, and centrifuged latex."
+      title: "Agarwood Processing Facility",
+      category: "Agarwood Production",
+      image: "/images/projects/agarwood-facility.jpg",
+      description: "State-of-the-art processing facility for producing premium agarwood products with expected yields of 30-40kg per tree after 10 years."
     },
     {
       id: 5,
@@ -58,7 +58,7 @@ const ProjectsPage = () => {
         <section className="bg-gradient-to-r from-green-600 to-emerald-700 text-white py-16">
           <div className="max-w-screen-xl mx-auto px-4 text-center">
             <h1 className="text-4xl font-bold mb-4">Our Plantation Projects</h1>
-            <p className="text-xl max-w-2xl mx-auto">Explore our sustainable agricultural initiatives and plantation development projects.</p>
+            <p className="text-xl max-w-2xl mx-auto">Explore our sustainable agricultural initiatives and exotic plantation development projects.</p>
           </div>
         </section>
 
@@ -67,8 +67,8 @@ const ProjectsPage = () => {
           <div className="max-w-screen-xl mx-auto px-4">
             <div className="flex flex-wrap justify-center gap-4">
               <button className="px-4 py-2 bg-green-700 text-white rounded-md">All Projects</button>
-              <button className="px-4 py-2 bg-white text-gray-700 rounded-md hover:bg-gray-100">Tea Cultivation</button>
-              <button className="px-4 py-2 bg-white text-gray-700 rounded-md hover:bg-gray-100">Rubber Production</button>
+              <button className="px-4 py-2 bg-white text-gray-700 rounded-md hover:bg-gray-100">Sandalwood Cultivation</button>
+              <button className="px-4 py-2 bg-white text-gray-700 rounded-md hover:bg-gray-100">Agarwood Production</button>
               <button className="px-4 py-2 bg-white text-gray-700 rounded-md hover:bg-gray-100">Spice Farming</button>
               <button className="px-4 py-2 bg-white text-gray-700 rounded-md hover:bg-gray-100">Sustainability</button>
             </div>
@@ -136,7 +136,7 @@ const ProjectsPage = () => {
         <section className="bg-green-50 py-16">
           <div className="max-w-screen-xl mx-auto px-4 text-center">
             <h2 className="text-3xl font-bold mb-6 text-green-800">Interested in Our Plantation Projects?</h2>
-            <p className="text-xl max-w-2xl mx-auto mb-8">Learn more about investment opportunities in our sustainable agricultural initiatives.</p>
+            <p className="text-xl max-w-2xl mx-auto mb-8">Learn more about investment opportunities in our sustainable exotic wood and spice initiatives.</p>
             <a href="/investment" className="inline-block px-8 py-3 bg-green-700 text-white font-semibold rounded-lg hover:bg-green-800 transition duration-300">Explore Investment Options</a>
           </div>
         </section>
@@ -148,3 +148,4 @@ const ProjectsPage = () => {
 }
 
 export default ProjectsPage;
+

@@ -6,11 +6,10 @@ import StaffFooter from '../../Components/Staff_Footer';
 import {
   provinces,
   districtsMap,
-  climateZones,
-  landShapes,
-  soilTypes,
   loadCitiesFromCSV
 } from '../../utils/locationData';
+import LandForm from '../../components/land/LandForm';
+import { validateLandForm } from '../../utils/landUtils';
 
 const AddCustomerLand = () => {
   const { customerId } = useParams();
@@ -172,10 +171,7 @@ const AddCustomerLand = () => {
     }
   };
 
-  // Handle search input change
-  const handleSearchChange = (e) => {
-    setSearchTerm(e.target.value);
-  };
+  // Handle search input change directly in the onChange event
 
   // Handle province change
   const handleProvinceChange = (e) => {
@@ -207,42 +203,7 @@ const AddCustomerLand = () => {
 
   // Validate form
   const validateForm = () => {
-    const errors = {};
-
-    if (!formData.customer_id) {
-      errors.customer_id = 'Please select a customer';
-    }
-
-    if (!formData.province) {
-      errors.province = 'Province is required';
-    }
-
-    if (!formData.district) {
-      errors.district = 'District is required';
-    }
-
-    if (!formData.city) {
-      errors.city = 'City is required';
-    }
-
-    if (!formData.climate_zone) {
-      errors.climate_zone = 'Climate zone is required';
-    }
-
-    if (!formData.land_shape) {
-      errors.land_shape = 'Land shape is required';
-    }
-
-    if (!formData.soil_type) {
-      errors.soil_type = 'Soil type is required';
-    }
-
-    if (!formData.land_size) {
-      errors.land_size = 'Land size is required';
-    } else if (isNaN(formData.land_size) || parseFloat(formData.land_size) <= 0) {
-      errors.land_size = 'Land size must be a positive number';
-    }
-
+    const errors = validateLandForm(formData, true);
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
   };
@@ -270,7 +231,7 @@ const AddCustomerLand = () => {
       };
 
       // Send data to API
-      const response = await axios.post(
+      await axios.post(
         `http://localhost:5001/api/staff/customers/${formData.customer_id}/lands`,
         landData,
         { headers: { Authorization: `Bearer ${token}` } }
@@ -396,227 +357,17 @@ const AddCustomerLand = () => {
                   </div>
                 )}
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {/* Province */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Province</label>
-                    <select
-                      name="province"
-                      value={formData.province}
-                      onChange={(e) => {
-                        const province = e.target.value;
-                        setFormData({
-                          ...formData,
-                          province,
-                          district: '',
-                          city: ''
-                        });
-
-                        // Update districts based on selected province
-                        setDistricts(districtsMap[province] || []);
-                        setCities([]);
-                      }}
-                      className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
-                    >
-                      <option value="">Select Province</option>
-                      {provinces.map(province => (
-                        <option key={province} value={province}>{province}</option>
-                      ))}
-                    </select>
-                    {formErrors.province && (
-                      <p className="text-red-500 text-sm mt-1">{formErrors.province}</p>
-                    )}
-                  </div>
-
-                  {/* District */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">District</label>
-                    <select
-                      name="district"
-                      value={formData.district}
-                      onChange={(e) => {
-                        const district = e.target.value;
-                        setFormData({
-                          ...formData,
-                          district,
-                          city: ''
-                        });
-
-                        // Update cities based on selected district
-                        if (district && citiesMap[district]) {
-                          console.log(`Setting cities for district ${district}:`, citiesMap[district]);
-                          setCities(citiesMap[district]);
-                        } else {
-                          console.log(`No cities found for district ${district}`);
-                          setCities([]);
-                        }
-                      }}
-                      className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
-                      disabled={!formData.province}
-                    >
-                      <option value="">Select District</option>
-                      {districts.map(district => (
-                        <option key={district} value={district}>{district}</option>
-                      ))}
-                    </select>
-                    {formErrors.district && (
-                      <p className="text-red-500 text-sm mt-1">{formErrors.district}</p>
-                    )}
-                  </div>
-
-                  {/* City */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">City</label>
-                    <select
-                      name="city"
-                      value={formData.city}
-                      onChange={handleInputChange}
-                      className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
-                      disabled={!formData.district}
-                    >
-                      <option value="">Select City</option>
-                      {cities.map(city => (
-                        <option key={city} value={city}>{city}</option>
-                      ))}
-                    </select>
-                    {formErrors.city && (
-                      <p className="text-red-500 text-sm mt-1">{formErrors.city}</p>
-                    )}
-                  </div>
-
-                  {/* Climate Zone */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Climate Zone</label>
-                    <select
-                      name="climate_zone"
-                      value={formData.climate_zone}
-                      onChange={handleInputChange}
-                      className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
-                    >
-                      <option value="">Select Climate Zone</option>
-                      {climateZones.map(zone => (
-                        <option key={zone} value={zone}>{zone}</option>
-                      ))}
-                    </select>
-                    {formErrors.climate_zone && (
-                      <p className="text-red-500 text-sm mt-1">{formErrors.climate_zone}</p>
-                    )}
-                  </div>
-
-                  {/* Land Shape */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Land Shape</label>
-                    <select
-                      name="land_shape"
-                      value={formData.land_shape}
-                      onChange={handleInputChange}
-                      className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
-                    >
-                      <option value="">Select Land Shape</option>
-                      {landShapes.map(shape => (
-                        <option key={shape} value={shape}>{shape}</option>
-                      ))}
-                    </select>
-                    {formErrors.land_shape && (
-                      <p className="text-red-500 text-sm mt-1">{formErrors.land_shape}</p>
-                    )}
-                  </div>
-
-                  {/* Soil Type */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Soil Type</label>
-                    <select
-                      name="soil_type"
-                      value={formData.soil_type}
-                      onChange={handleInputChange}
-                      className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
-                    >
-                      <option value="">Select Soil Type</option>
-                      {soilTypes.map(type => (
-                        <option key={type} value={type}>{type}</option>
-                      ))}
-                    </select>
-                    {formErrors.soil_type && (
-                      <p className="text-red-500 text-sm mt-1">{formErrors.soil_type}</p>
-                    )}
-                  </div>
-
-                  {/* Land Size */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Land Size (perch)</label>
-                    <input
-                      type="number"
-                      name="land_size"
-                      value={formData.land_size}
-                      onChange={handleInputChange}
-                      step="0.01"
-                      min="0.01"
-                      className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
-                    />
-                    {formErrors.land_size && (
-                      <p className="text-red-500 text-sm mt-1">{formErrors.land_size}</p>
-                    )}
-                  </div>
-                </div>
-
-                {/* Checkboxes */}
-                <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="flex items-center">
-                    <input
-                      type="checkbox"
-                      id="has_water"
-                      name="has_water"
-                      checked={formData.has_water}
-                      onChange={handleInputChange}
-                      className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
-                    />
-                    <label htmlFor="has_water" className="ml-2 block text-sm text-gray-700">
-                      Has Water Source
-                    </label>
-                  </div>
-
-                  <div className="flex items-center">
-                    <input
-                      type="checkbox"
-                      id="has_stones"
-                      name="has_stones"
-                      checked={formData.has_stones}
-                      onChange={handleInputChange}
-                      className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
-                    />
-                    <label htmlFor="has_stones" className="ml-2 block text-sm text-gray-700">
-                      Has Stones
-                    </label>
-                  </div>
-
-                  <div className="flex items-center">
-                    <input
-                      type="checkbox"
-                      id="has_landslide_risk"
-                      name="has_landslide_risk"
-                      checked={formData.has_landslide_risk}
-                      onChange={handleInputChange}
-                      className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
-                    />
-                    <label htmlFor="has_landslide_risk" className="ml-2 block text-sm text-gray-700">
-                      Has Landslide Risk
-                    </label>
-                  </div>
-
-                  <div className="flex items-center">
-                    <input
-                      type="checkbox"
-                      id="has_forestry"
-                      name="has_forestry"
-                      checked={formData.has_forestry}
-                      onChange={handleInputChange}
-                      className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
-                    />
-                    <label htmlFor="has_forestry" className="ml-2 block text-sm text-gray-700">
-                      Has Forestry
-                    </label>
-                  </div>
-                </div>
+                {/* Land Form Component */}
+                <LandForm
+                  formData={formData}
+                  formErrors={formErrors}
+                  handleInputChange={handleInputChange}
+                  handleProvinceChange={handleProvinceChange}
+                  handleDistrictChange={handleDistrictChange}
+                  provinces={provinces}
+                  districts={districts}
+                  cities={cities}
+                />
 
                 {/* Submit Button */}
                 <div className="mt-8">

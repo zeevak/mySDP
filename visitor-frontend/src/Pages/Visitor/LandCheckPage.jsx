@@ -250,7 +250,7 @@ const AgarwoodCalculator = () => {
       if (response.data.success) {
         console.log('Visitor data saved successfully:', response.data);
         // Navigate to the results page with the land size
-        navigate(`/investment/results/${formik.values.landSize}`);
+        navigate(`/try-agarwood/results/${formik.values.landSize}`);
       } else {
         setSubmitError('Failed to save visitor data. Please try again.');
       }

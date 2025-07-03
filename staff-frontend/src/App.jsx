@@ -15,6 +15,8 @@ import LandManager from './Pages/Staff/LandManager';
 import EditLand from './Pages/Staff/EditLand';
 import SelectCustomerForProposal from './Pages/Staff/SelectCustomerForProposal';
 import CreateProposal from './Pages/Staff/CreateProposal';
+import ProposalManager from './Pages/Staff/ProposalManager';
+import EditProposal from './Pages/Staff/EditProposal';
 import DashboardRedirect from './Components/DashboardRedirect';
 
 // Protected route component
@@ -95,6 +97,14 @@ function App() {
         <Route
           path="/staff/create-proposal/:customerId"
           element={<ProtectedRoute element={<CreateProposal />} allowedRoles={['Staff', 'Admin']} />}
+        />
+        <Route
+          path="/staff/proposals"
+          element={<ProtectedRoute element={<ProposalManager />} allowedRoles={['Staff', 'Admin']} />}
+        />
+        <Route
+          path="/staff/proposals/:proposalId/edit"
+          element={<ProtectedRoute element={<EditProposal />} allowedRoles={['Staff', 'Admin']} />}
         />
 
         {/* Protected routes - Admin only */}

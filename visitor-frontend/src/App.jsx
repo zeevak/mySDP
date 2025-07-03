@@ -34,6 +34,9 @@ function App() {
       <Route path="/products/agarwood" element={<Agarwood />} />
       <Route path="/products/vanilla" element={<Vanilla />} />
       <Route path="/products/sandalwood" element={<Sandalwood />} />
+
+      {/* Investment Routes */}
+      <Route path="/investment" element={<HomePage />} />
     </Routes>
   );
 }

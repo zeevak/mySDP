@@ -21,7 +21,7 @@ const Footer = () => {
               <span className="self-center text-2xl font-semibold whitespace-nowrap text-green-800">Susaru Agro</span>
             </a>
             <p className="mt-2 text-gray-600 max-w-md">
-              Sustainable plantation management and premium agricultural investments in tea, rubber, and vanilla cultivation across Sri Lanka.
+              Sustainable plantation management and premium agricultural investments in sandalwood, agarwood, and vanilla cultivation across Sri Lanka.
             </p>
             {/* Contact Information Section */}
             <div className="mt-4">
@@ -39,10 +39,10 @@ const Footer = () => {
               <h2 className="mb-6 text-sm font-semibold text-green-800 uppercase">Plantations</h2>
               <ul className="text-gray-600">
                 <li className="mb-4">
-                  <a href="/products/tea" className="hover:text-green-700">Tea Estates</a>
+                  <a href="/products/sandalwood" className="hover:text-green-700">Sandalwood Estates</a>
                 </li>
                 <li className="mb-4">
-                  <a href="/products/rubber" className="hover:text-green-700">Rubber Plantations</a>
+                  <a href="/products/agarwood" className="hover:text-green-700">Agarwood Plantations</a>
                 </li>
                 <li>
                   <a href="/products/vanilla" className="hover:text-green-700">Vanilla Farms</a>
@@ -55,13 +55,10 @@ const Footer = () => {
               <h2 className="mb-6 text-sm font-semibold text-green-800 uppercase">Invest With Us</h2>
               <ul className="text-gray-600">
                 <li className="mb-4">
-                  <a href="/investment/tea" className="hover:text-green-700">Tea Investment</a>
-                </li>
-                <li className="mb-4">
-                  <a href="/investment/vanilla" className="hover:text-green-700">Vanilla Investment</a>
+                  <a href="/investment" className="hover:text-green-700">Investment Options</a>
                 </li>
                 <li>
-                  <a href="/investment/calculator" className="hover:text-green-700">ROI Calculator</a>
+                  <a href="/try-agarwood" className="hover:text-green-700">ROI Calculator</a>
                 </li>
               </ul>
             </div>

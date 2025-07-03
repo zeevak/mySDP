@@ -10,42 +10,42 @@ const Staff_Header = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  // Function to fetch user profile from the backend
-  const fetchUserProfile = async () => {
-    try {
-      const token = localStorage.getItem('token');
-      if (!token) return;
-
-      const authAxios = getAuthAxios();
-      const response = await authAxios.get('/api/staff/me');
-
-      if (response.data && response.data.success && response.data.data) {
-        const userData = response.data.data;
-
-        // Update username in state and localStorage
-        setUsername(userData.username);
-        localStorage.setItem('username', userData.username);
-
-        // Update role in state and localStorage if available
-        if (userData.role) {
-          setUserRole(userData.role);
-          localStorage.setItem('role', userData.role);
-        }
-
-        // Update user data in localStorage
-        localStorage.setItem('user', JSON.stringify(userData));
-      }
-    } catch (error) {
-      console.error('Error fetching user profile:', error);
-
-      // Handle unauthorized error
-      if (error.response && error.response.status === 401) {
-        logout(navigate);
-      }
-    }
-  };
-
   useEffect(() => {
+    // Function to fetch user profile from the backend
+    const fetchUserProfile = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) return;
+
+        const authAxios = getAuthAxios();
+        const response = await authAxios.get('/api/staff/me');
+
+        if (response.data && response.data.success && response.data.data) {
+          const userData = response.data.data;
+
+          // Update username in state and localStorage
+          setUsername(userData.username);
+          localStorage.setItem('username', userData.username);
+
+          // Update role in state and localStorage if available
+          if (userData.role) {
+            setUserRole(userData.role);
+            localStorage.setItem('role', userData.role);
+          }
+
+          // Update user data in localStorage
+          localStorage.setItem('user', JSON.stringify(userData));
+        }
+      } catch (error) {
+        console.error('Error fetching user profile:', error);
+
+        // Handle unauthorized error
+        if (error.response && error.response.status === 401) {
+          logout(navigate);
+        }
+      }
+    };
+
     // Check if user is logged in
     const token = localStorage.getItem('token');
     if (token) {
@@ -95,7 +95,7 @@ const Staff_Header = () => {
       setIsLoggedIn(false);
       setUserRole('');
     }
-  }, [location]);
+  }, [location, navigate]);
 
   const handleLogout = () => {
     logout(navigate);
@@ -157,18 +157,10 @@ const Staff_Header = () => {
                     </li>
                     <li>
                       <Link
-                        to="/staff/inventory"
-                        className={`block px-3 py-2 rounded-md ${location.pathname.includes('/inventory') ? 'bg-green-700' : 'hover:bg-green-700'} transition duration-200`}
+                        to="/staff/proposals"
+                        className={`block px-3 py-2 rounded-md ${location.pathname.includes('/proposals') ? 'bg-green-700' : 'hover:bg-green-700'} transition duration-200`}
                       >
-                        Inventory
-                      </Link>
-                    </li>
-                    <li>
-                      <Link
-                        to="/staff/shipments"
-                        className={`block px-3 py-2 rounded-md ${location.pathname.includes('/shipments') ? 'bg-green-700' : 'hover:bg-green-700'} transition duration-200`}
-                      >
-                        Plant Shipments
+                        Proposals
                       </Link>
                     </li>
                     <li>
@@ -181,12 +173,21 @@ const Staff_Header = () => {
                     </li>
                     <li>
                       <Link
-                        to="/staff/submit-proposal"
-                        className={`block px-3 py-2 rounded-md ${location.pathname.includes('/submit-proposal') ? 'bg-green-700' : 'hover:bg-green-700'} transition duration-200`}
+                        to="/staff/inventory"
+                        className={`block px-3 py-2 rounded-md ${location.pathname.includes('/inventory') ? 'bg-green-700' : 'hover:bg-green-700'} transition duration-200`}
                       >
-                        Submit Proposal
+                        Inventory
                       </Link>
                     </li>
+                    <li>
+                      <Link
+                        to="/staff/shipments"
+                        className={`block px-3 py-2 rounded-md ${location.pathname.includes('/shipments') ? 'bg-green-700' : 'hover:bg-green-700'} transition duration-200`}
+                      >
+                        Shipments
+                      </Link>
+                    </li>
+                    
                   </ul>
                 )}
               </nav>

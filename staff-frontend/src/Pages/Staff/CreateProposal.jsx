@@ -9,11 +9,13 @@ const CreateProposal = () => {
   const navigate = useNavigate();
 
   const [customer, setCustomer] = useState(null);
+  const [customerLands, setCustomerLands] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
 
   const [formData, setFormData] = useState({
+    customer_land_id: '',
     project_type: 'Agarwood',
     project_duration: '',
     project_value: '',
@@ -26,7 +28,7 @@ const CreateProposal = () => {
   const [submitting, setSubmitting] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
 
-  // Fetch customer details
+  // Fetch customer details and customer lands
   useEffect(() => {
     // Check if user is authenticated
     if (!isAuthenticated()) {
@@ -34,22 +36,40 @@ const CreateProposal = () => {
       return;
     }
 
-    const fetchCustomer = async () => {
+    const fetchCustomerData = async () => {
       try {
         setLoading(true);
         const authAxios = getAuthAxios();
 
-        const response = await authAxios.get(`/api/staff/customers/${customerId}`);
-
-        if (response.data && response.data.success) {
-          setCustomer(response.data.data);
+        // Fetch customer details
+        const customerResponse = await authAxios.get(`/api/staff/customers/${customerId}`);
+        if (customerResponse.data && customerResponse.data.success) {
+          setCustomer(customerResponse.data.data);
         } else {
           setError('Failed to fetch customer details');
+          setLoading(false);
+          return;
+        }
+
+        // Fetch customer lands
+        const landsResponse = await authAxios.get(`/api/proposal/customer-lands/${customerId}`);
+        if (landsResponse.data && landsResponse.data.success) {
+          setCustomerLands(landsResponse.data.data);
+          
+          // Set default land if available
+          if (landsResponse.data.data.length > 0) {
+            setFormData(prev => ({
+              ...prev,
+              customer_land_id: landsResponse.data.data[0].customer_land_id
+            }));
+          }
+        } else {
+          setError('Failed to fetch customer lands');
         }
 
         setLoading(false);
       } catch (err) {
-        console.error('Error fetching customer:', err);
+        console.error('Error fetching customer data:', err);
 
         // Handle unauthorized error
         if (err.response && err.response.status === 401) {
@@ -58,14 +78,14 @@ const CreateProposal = () => {
             logout(navigate);
           }, 2000);
         } else {
-          setError('Error fetching customer details. Please try again.');
+          setError('Error fetching customer data. Please try again.');
         }
 
         setLoading(false);
       }
     };
 
-    fetchCustomer();
+    fetchCustomerData();
   }, [customerId, navigate]);
 
   // Fetch available durations when project type changes
@@ -174,7 +194,7 @@ const CreateProposal = () => {
 
     // Validate form
     if (!formData.project_type || !formData.project_duration || !formData.project_value || !formData.payment_mode) {
-      setError('All fields are required');
+      setError('All basic fields are required');
       return;
     }
 
@@ -190,6 +210,7 @@ const CreateProposal = () => {
 
       const proposalData = {
         customer_id: customerId,
+        customer_land_id: formData.customer_land_id,
         project_type: formData.project_type,
         project_duration: parseInt(formData.project_duration),
         project_value: parseFloat(formData.project_value),
@@ -318,6 +339,32 @@ const CreateProposal = () => {
               {/* Proposal Form */}
               <form onSubmit={handleSubmit} className="p-6">
                 <div className="grid grid-cols-1 gap-6">
+                  {/* Land Selection */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Select Land (Optional)
+                    </label>
+                    {customerLands.length > 0 ? (
+                      <select
+                        name="customer_land_id"
+                        value={formData.customer_land_id}
+                        onChange={handleChange}
+                        className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500"
+                      >
+                        <option value="">Select a land (optional)...</option>
+                        {customerLands.map(land => (
+                          <option key={land.customer_land_id} value={land.customer_land_id}>
+                            {land.description}
+                          </option>
+                        ))}
+                      </select>
+                    ) : (
+                      <div className="text-yellow-600 text-sm">
+                        No lands available for this customer. You can add a land later.
+                      </div>
+                    )}
+                  </div>
+
                   {/* Project Type */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -477,6 +524,11 @@ const CreateProposal = () => {
 
             <div className="bg-gray-50 p-3 rounded-md mb-4">
               <div className="grid grid-cols-2 gap-2 text-sm">
+                <div className="text-gray-600">Selected Land:</div>
+                <div className="font-medium">
+                  {customerLands.find(land => land.customer_land_id === formData.customer_land_id)?.description || 'N/A'}
+                </div>
+
                 <div className="text-gray-600">Project Type:</div>
                 <div className="font-medium">{formData.project_type}</div>
 
