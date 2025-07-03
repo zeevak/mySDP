@@ -406,6 +406,26 @@ exports.updateProposalStatus = async (req, res) => {
     // Update only the status
     const updatedProposal = await proposal.update({ status });
 
+    // If proposal is approved, create a project for it automatically
+    if (status === 'Approved') {
+      const Project = require('../models/Project');
+      
+      // Check if project already exists
+      const existingProject = await Project.findOne({
+        where: { proposal_id: proposal.proposal_id }
+      });
+
+      if (!existingProject) {
+        await Project.create({
+          proposal_id: proposal.proposal_id,
+          status: 'Yet To Start',
+          progress_percentage: 0,
+          last_updated: new Date()
+        });
+        console.log(`Project created for approved proposal ${proposal.proposal_id}`);
+      }
+    }
+
     res.status(200).json({
       success: true,
       data: updatedProposal

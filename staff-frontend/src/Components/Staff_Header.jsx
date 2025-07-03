@@ -165,7 +165,7 @@ const Staff_Header = () => {
                     </li>
                     <li>
                       <Link
-                        to="/projects"
+                        to="/staff/projects"
                         className={`block px-3 py-2 rounded-md ${location.pathname.includes('/projects') ? 'bg-green-700' : 'hover:bg-green-700'} transition duration-200`}
                       >
                         Projects

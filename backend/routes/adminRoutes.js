@@ -8,6 +8,7 @@ const express = require("express");
 const router = express.Router();
 const staffController = require("../controllers/staffController");
 const dashboardController = require("../controllers/dashboardController");
+const reportsController = require("../controllers/reportsController");
 const { protect, authorize } = require("../middleware/auth");
 
 // Staff management routes - Admin only
@@ -23,5 +24,8 @@ router.post("/staff/create-admin", protect, authorize(['Admin']), staffControlle
 // Dashboard routes
 router.get('/dashboard/stats', protect, authorize(['Admin']), dashboardController.getStats);
 router.get('/dashboard/activity', protect, authorize(['Admin']), dashboardController.getActivity);
+
+// Reports routes - Admin only
+router.get('/reports/monthly', protect, authorize(['Admin']), reportsController.getMonthlyReports);
 
 module.exports = router;

@@ -1,7 +1,6 @@
 // models/progress.js
 const { DataTypes } = require("sequelize");
 const sequelize = require("../config/db");
-const Project = require("./project");
 
 const Progress = sequelize.define(
   "progress",
@@ -14,7 +13,6 @@ const Progress = sequelize.define(
     project_id: {
       type: DataTypes.INTEGER,
       allowNull: false,
-      references: { model: Project, key: "project_id" },
     },
     phase: {
       type: DataTypes.STRING(20),
@@ -48,11 +46,5 @@ const Progress = sequelize.define(
     timestamps: false
   }
 );
-
-// Define the association
-Progress.belongsTo(Project, { 
-  foreignKey: "project_id", 
-  onDelete: "CASCADE" 
-});
 
 module.exports = Progress;

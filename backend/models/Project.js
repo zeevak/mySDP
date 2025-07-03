@@ -1,8 +1,6 @@
 // models/Project.js
 const { DataTypes } = require("sequelize");
 const sequelize = require("../config/db");
-const Staff = require("./Staff");
-const Proposal = require("./proposal");
 
 const Project = sequelize.define(
   "project",
@@ -13,23 +11,23 @@ const Project = sequelize.define(
       autoIncrement: true,
     },
     staff_id: {
-      type: DataTypes.INTEGER,
-      references: { model: Staff, key: "staff_id" },
+      type: DataTypes.STRING,
+      allowNull: true
     },
     proposal_id: {
       type: DataTypes.STRING(10),
-      references: { model: Proposal, key: "proposal_id" },
+      allowNull: true
     },
     status: {
-      type: DataTypes.STRING(10),
-      defaultValue: "Pending",
-      validate: { isIn: [["Pending", "Ongoing", "Completed"]] }
+      type: DataTypes.STRING(20),
+      defaultValue: "Yet To Start",
+      validate: { isIn: [["Yet To Start", "Ongoing", "Completed"]] }
     },
     start_date: {
       type: DataTypes.DATE,
       validate: {
         isValidStartDate(value) {
-          if (value && this.status === 'Pending') {
+          if (value && this.status === 'Yet To Start') {
             throw new Error('Start date should only be set for Ongoing or Completed projects');
           }
         }
@@ -48,8 +46,44 @@ const Project = sequelize.define(
         }
       }
     },
+    progress_percentage: {
+      type: DataTypes.INTEGER,
+      defaultValue: 0,
+      validate: {
+        min: 0,
+        max: 100
+      }
+    },
+    weather_conditions: {
+      type: DataTypes.TEXT,
+      allowNull: true
+    },
+    soil_conditions: {
+      type: DataTypes.TEXT,
+      allowNull: true
+    },
+    irrigation_status: {
+      type: DataTypes.TEXT,
+      allowNull: true
+    },
+    pest_disease_status: {
+      type: DataTypes.TEXT,
+      allowNull: true
+    },
+    notes: {
+      type: DataTypes.TEXT,
+      allowNull: true
+    },
+    last_updated: {
+      type: DataTypes.DATE,
+      defaultValue: DataTypes.NOW
+    }
   },
-  { timestamps: false }
+  { 
+    timestamps: true,
+    createdAt: 'created_at',
+    updatedAt: 'updated_at'
+  }
 );
 
 // Define associations without foreign key constraints

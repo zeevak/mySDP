@@ -1,10 +1,12 @@
 // ResultsCalculation.jsx
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
+import { generateInvestmentAnalysisPDF } from '../../utils/pdfService';
 
 const ResultsCalculation = ({ landSize, customerName = 'Investor' }) => {
   const targetRef = useRef(null);
+  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
 
   // Constants for calculations
   const PLANT_SPACING = 8; // feet
@@ -42,38 +44,84 @@ const ResultsCalculation = ({ landSize, customerName = 'Investor' }) => {
     return new Intl.NumberFormat('en-US').format(Math.round(num));
   };
 
-  // Function to handle PDF download
-  const handleDownloadPDF = () => {
-    if (!targetRef.current) return;
+  // Function to handle PDF download with professional layout
+  const handleDownloadPDF = async () => {
+    setIsGeneratingPDF(true);
+    try {
+      const pdfData = {
+        customerName,
+        landSize,
+        totalPlants,
+        areaInSqFeet,
+        totalCompost,
+        plantCost,
+        compostCost,
+        totalInvestment,
+        totalYield,
+        minReturnLKR,
+        maxReturnLKR,
+        formatNumber
+      };
+      
+      const success = await generateInvestmentAnalysisPDF(pdfData);
+      
+      if (!success) {
+        throw new Error('PDF generation failed');
+      }
+      
+    } catch (error) {
+      console.error('Error generating professional PDF:', error);
+      // Fallback to html2canvas method
+      if (targetRef.current) {
+        html2canvas(targetRef.current).then(canvas => {
+          const imgData = canvas.toDataURL('image/png');
+          const pdf = new jsPDF('p', 'mm', 'a4');
+          const pdfWidth = pdf.internal.pageSize.getWidth();
+          const pdfHeight = pdf.internal.pageSize.getHeight();
+          const imgWidth = canvas.width;
+          const imgHeight = canvas.height;
+          const ratio = Math.min(pdfWidth / imgWidth, pdfHeight / imgHeight);
+          const imgX = (pdfWidth - imgWidth * ratio) / 2;
+          const imgY = 30;
 
-    html2canvas(targetRef.current).then(canvas => {
-      const imgData = canvas.toDataURL('image/png');
-      const pdf = new jsPDF('p', 'mm', 'a4');
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = pdf.internal.pageSize.getHeight();
-      const imgWidth = canvas.width;
-      const imgHeight = canvas.height;
-      const ratio = Math.min(pdfWidth / imgWidth, pdfHeight / imgHeight);
-      const imgX = (pdfWidth - imgWidth * ratio) / 2;
-      const imgY = 30;
-
-      pdf.addImage(imgData, 'PNG', imgX, imgY, imgWidth * ratio, imgHeight * ratio);
-      pdf.save(`Agarwood_Investment_Analysis_${customerName}.pdf`);
-    });
+          pdf.addImage(imgData, 'PNG', imgX, imgY, imgWidth * ratio, imgHeight * ratio);
+          pdf.save(`Agarwood_Investment_Analysis_${customerName}.pdf`);
+        });
+      }
+    } finally {
+      setIsGeneratingPDF(false);
+    }
   };
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-2xl font-bold text-green-800">Your Agarwood Investment Analysis</h2>
+      <div className="flex justify-between items-center mb-4 bg-white p-4 rounded-lg shadow-sm border">
+        <div>
+          <h2 className="text-2xl font-bold text-green-800">Your Agarwood Investment Analysis</h2>
+          <p className="text-sm text-gray-600 mt-1">Professional analysis by Susaru Agro (Pvt) Ltd</p>
+        </div>
         <button
           onClick={handleDownloadPDF}
-          className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors flex items-center"
+          disabled={isGeneratingPDF}
+          className={`px-6 py-3 rounded-md font-medium transition-all duration-200 flex items-center shadow-lg ${
+            isGeneratingPDF
+              ? 'bg-gray-400 cursor-not-allowed'
+              : 'bg-green-600 text-white hover:bg-green-700'
+          }`}
         >
-          <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-          </svg>
-          Download PDF
+          {isGeneratingPDF ? (
+            <>
+              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+              <span>Generating Report...</span>
+            </>
+          ) : (
+            <>
+              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+              </svg>
+              <span>Download Official Report</span>
+            </>
+          )}
         </button>
       </div>
 
@@ -164,6 +212,17 @@ const ResultsCalculation = ({ landSize, customerName = 'Investor' }) => {
 
         <div className="text-center mt-8">
           <p className="text-xl font-bold text-green-700">Stay safe, we will contact you soon!</p>
+        </div>
+
+        <div className="bg-gray-50 p-6 rounded-lg border border-gray-200 mt-6">
+          <h3 className="text-lg font-semibold text-gray-700 mb-3">Important Disclaimer</h3>
+          <div className="text-sm text-gray-600 space-y-2">
+            <p>• This analysis is based on current market conditions and historical data.</p>
+            <p>• Actual returns may vary depending on market fluctuations, quality of agarwood, and global demand.</p>
+            <p>• Investment in agriculture carries inherent risks including weather, pests, and market volatility.</p>
+            <p>• This document is for informational purposes only and should not be considered as financial advice.</p>
+            <p>• Susaru Agro (Pvt) Ltd provides ongoing support but cannot guarantee specific returns.</p>
+          </div>
         </div>
       </div>
     </div>

@@ -304,7 +304,7 @@ const ProposalManager = () => {
                             {proposal.project_type}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                            {proposal.project_duration} months
+                            {proposal.project_duration} years
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                             {formatCurrency(proposal.project_value)}

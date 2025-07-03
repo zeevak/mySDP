@@ -7,6 +7,7 @@ import CustomerManager from './Pages/Staff/CustomerManager';
 import InventoryManager from './Pages/Staff/InventoryManager';
 import PlantShipment from './Pages/Staff/PlantShipment';
 import StaffManager from './Pages/Admin/StaffManager';
+import MonthlyReports from './Pages/Admin/MonthlyReports';
 import MessagesPage from './Pages/Staff/MessagesPage';
 import AddCustomer from './Pages/Staff/AddCustomer';
 import EditCustomer from './Pages/Staff/EditCustomer';
@@ -17,6 +18,8 @@ import SelectCustomerForProposal from './Pages/Staff/SelectCustomerForProposal';
 import CreateProposal from './Pages/Staff/CreateProposal';
 import ProposalManager from './Pages/Staff/ProposalManager';
 import EditProposal from './Pages/Staff/EditProposal';
+import ProjectsPage from './Pages/Staff/ProjectsPage';
+import ProjectDetails from './Pages/Staff/ProjectDetails';
 import DashboardRedirect from './Components/DashboardRedirect';
 
 // Protected route component
@@ -106,6 +109,14 @@ function App() {
           path="/staff/proposals/:proposalId/edit"
           element={<ProtectedRoute element={<EditProposal />} allowedRoles={['Staff', 'Admin']} />}
         />
+        <Route
+          path="/staff/projects"
+          element={<ProtectedRoute element={<ProjectsPage />} allowedRoles={['Staff', 'Admin']} />}
+        />
+        <Route
+          path="/staff/projects/:projectId"
+          element={<ProtectedRoute element={<ProjectDetails />} allowedRoles={['Staff', 'Admin']} />}
+        />
 
         {/* Protected routes - Admin only */}
         <Route
@@ -115,6 +126,10 @@ function App() {
         <Route
           path="/admin/staff"
           element={<ProtectedRoute element={<StaffManager />} allowedRoles={['Admin']} />}
+        />
+        <Route
+          path="/admin/reports"
+          element={<ProtectedRoute element={<MonthlyReports />} allowedRoles={['Admin']} />}
         />
 
         {/* Fallback route */}
