@@ -7,10 +7,10 @@ const dashboardQueries = {
   // Basic count queries
   customerCount: 'SELECT COUNT(*) as count FROM customer',
   staffCount: 'SELECT COUNT(*) as count FROM staff',
-  projectCount: 'SELECT COUNT(*) as count FROM project',
+  projectCount: 'SELECT COUNT(*) as count FROM projects',
   inventoryCount: 'SELECT COUNT(*) as count FROM inventory',
   unreadMessageCount: 'SELECT COUNT(*) as count FROM message WHERE is_read = false',
-  pendingRequestCount: 'SELECT COUNT(*) as count FROM request WHERE status = \'pending\'',
+  pendingRequestCount: 'SELECT COUNT(*) as count FROM request',
 
   // Recent activity queries
   recentCustomers: `
@@ -21,9 +21,9 @@ const dashboardQueries = {
   `,
 
   recentProjects: `
-    SELECT p.project_id, p.project_type, p.status, s.name as staff_name, p.start_date
-    FROM project p
-    LEFT JOIN staff s ON p.staff_id = s.staff_id
+    SELECT p.project_id, p.status, s.name as staff_name, p.start_date
+    FROM projects p
+    LEFT JOIN staff s ON CAST(p.staff_id AS INTEGER) = s.staff_id
     ORDER BY p.start_date DESC
     LIMIT 5
   `,
@@ -36,7 +36,7 @@ const dashboardQueries = {
   `,
 
   recentRequests: `
-    SELECT r.request_id, c.full_name as customer_name, r.request_details, r.status, r.request_date
+    SELECT r.request_id, c.full_name as customer_name, r.request_details, r.request_date
     FROM request r
     JOIN customer c ON r.customer_id = c.customer_id
     ORDER BY r.request_date DESC
@@ -46,7 +46,7 @@ const dashboardQueries = {
   // Distribution queries
   projectStatusDistribution: `
     SELECT status, COUNT(*) as count
-    FROM project
+    FROM projects
     GROUP BY status
   `,
 

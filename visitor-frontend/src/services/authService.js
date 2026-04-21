@@ -21,7 +21,7 @@ export const authService = {
     },
     
     register: async (userData) => {
-        return api.post("/auth/register", userData);
+        return api.post("/customer/register", userData);
     },
     
     forgotPassword: async (email) => {
@@ -33,6 +33,6 @@ export const authService = {
     },
     
     getCurrentUser: async () => {
-        return api.get("/auth/me");
+        return api.get("/customer/me");
     }
 };

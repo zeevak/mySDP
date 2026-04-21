@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { NavLink, useLocation } from 'react-router-dom';
+import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import logoImage from '../assets/susaruLogo.png';
+import { authService } from '../services/authService';
 
 const menuItems = [
   { name: 'Home', path: '/' },
@@ -24,7 +25,10 @@ const Header = () => {
   const [scrolled, setScrolled] = useState(false);
   const [openDropdown, setOpenDropdown] = useState(null);
   const [isDropdownClicked, setIsDropdownClicked] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [userData, setUserData] = useState(null);
   const location = useLocation();
+  const navigate = useNavigate();
   const navRef = useRef(null);
 
   useEffect(() => {
@@ -32,6 +36,30 @@ const Header = () => {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  // Check authentication status
+  useEffect(() => {
+    const checkAuthStatus = async () => {
+      const token = localStorage.getItem('token');
+      if (token) {
+        try {
+          const response = await authService.getCurrentUser();
+          setIsAuthenticated(true);
+          setUserData(response.data);
+        } catch {
+          // Token is invalid, remove it
+          localStorage.removeItem('token');
+          setIsAuthenticated(false);
+          setUserData(null);
+        }
+      } else {
+        setIsAuthenticated(false);
+        setUserData(null);
+      }
+    };
+
+    checkAuthStatus();
+  }, [location.pathname]); // Re-check when route changes
 
   // Close dropdowns on route change
   useEffect(() => {
@@ -54,6 +82,14 @@ const Header = () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, []);
+
+  // Handle logout
+  const handleLogout = () => {
+    authService.logout();
+    setIsAuthenticated(false);
+    setUserData(null);
+    navigate('/');
+  };
 
   // Helper to determine if a menu item is active
   const isActive = (path) => {
@@ -85,9 +121,23 @@ const Header = () => {
           <span className="self-center text-2xl font-semibold whitespace-nowrap text-green-800">Susaru Agro</span>
         </NavLink>
         <div className="flex items-center md:order-2">
-          <NavLink to="/customer/login" className="text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:outline-none focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center mr-2">
-            Customer Login
-          </NavLink>
+          {isAuthenticated ? (
+            <div className="flex items-center space-x-4">
+              <span className="text-green-700 font-medium">
+                Welcome, {userData?.firstName || userData?.data?.firstName || 'Customer'}
+              </span>
+              <button 
+                onClick={handleLogout}
+                className="text-white bg-red-600 hover:bg-red-700 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center mr-2"
+              >
+                Logout
+              </button>
+            </div>
+          ) : (
+            <NavLink to="/customer/login" className="text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:outline-none focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center mr-2">
+              Customer Login
+            </NavLink>
+          )}
           <NavLink to="/try-agarwood" className="text-green-700 border border-green-700 hover:bg-green-50 focus:ring-4 focus:outline-none focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center hidden md:inline-block">
             Try Agarwood
           </NavLink>

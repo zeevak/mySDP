@@ -16,6 +16,8 @@ const AdminDashboard = () => {
   const [recentActivity, setRecentActivity] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [lastUpdated, setLastUpdated] = useState(null);
+  const [refreshing, setRefreshing] = useState(false);
   const [showMessagesPopup, setShowMessagesPopup] = useState(false);
   const [messages, setMessages] = useState([]);
   const [expandedMessageId, setExpandedMessageId] = useState(null);
@@ -24,9 +26,14 @@ const AdminDashboard = () => {
   const [successMessage, setSuccessMessage] = useState(null);
 
   useEffect(() => {
-    const fetchDashboardData = async () => {
+    const fetchDashboardData = async (isManualRefresh = false) => {
       try {
-        setLoading(true);
+        if (isManualRefresh) {
+          setRefreshing(true);
+        } else {
+          setLoading(true);
+        }
+        
         const token = localStorage.getItem('token');
 
         // Fetch dashboard statistics
@@ -43,16 +50,57 @@ const AdminDashboard = () => {
 
         setStats(statsResponse.data);
         setRecentActivity(activityResponse.data);
+        setLastUpdated(new Date());
         setLoading(false);
+        setRefreshing(false);
       } catch (err) {
         console.error('Error fetching dashboard data:', err);
         setError('Failed to load dashboard data. Please try again later.');
         setLoading(false);
+        setRefreshing(false);
       }
     };
 
     fetchDashboardData();
+
+    // Set up auto-refresh every 30 seconds
+    const interval = setInterval(() => {
+      fetchDashboardData(true);
+    }, 30000);
+
+    return () => clearInterval(interval);
   }, []);
+
+  // Manual refresh function
+  const handleManualRefresh = () => {
+    const fetchDashboardData = async () => {
+      try {
+        setRefreshing(true);
+        const token = localStorage.getItem('token');
+
+        // Fetch dashboard statistics
+        const statsResponse = await axios.get('http://localhost:5001/api/admin/dashboard/stats', {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+
+        // Fetch recent activity
+        const activityResponse = await axios.get('http://localhost:5001/api/admin/dashboard/activity', {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+
+        setStats(statsResponse.data);
+        setRecentActivity(activityResponse.data);
+        setLastUpdated(new Date());
+        setRefreshing(false);
+      } catch (err) {
+        console.error('Error fetching dashboard data:', err);
+        setError('Failed to load dashboard data. Please try again later.');
+        setRefreshing(false);
+      }
+    };
+
+    fetchDashboardData();
+  };
 
   // Fetch messages when popup is opened
   useEffect(() => {
@@ -110,6 +158,9 @@ const AdminDashboard = () => {
           ...prevStats,
           messages: prevStats.messages > 0 ? prevStats.messages - 1 : 0
         }));
+
+        // Refresh dashboard data to get updated counts
+        handleManualRefresh();
       }
     } catch (err) {
       console.error('Error toggling message:', err);
@@ -150,6 +201,9 @@ const AdminDashboard = () => {
       setMessageToDelete(null);
       setSuccessMessage('Message deleted successfully');
 
+      // Refresh dashboard data to get updated counts
+      handleManualRefresh();
+
       // Clear success message after 3 seconds
       setTimeout(() => {
         setSuccessMessage(null);
@@ -177,8 +231,27 @@ const AdminDashboard = () => {
 
       <main className="flex-grow container mx-auto px-4 py-8">
         <div className="mb-6">
-          <h1 className="text-3xl font-bold text-gray-800">Admin Dashboard</h1>
-          <p className="text-gray-600">Welcome to Susaru Agro Plantation management system</p>
+          <div className="flex justify-between items-center">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-800">Admin Dashboard</h1>
+              <p className="text-gray-600">Welcome to Susaru Agro Plantation management system</p>
+              {lastUpdated && (
+                <p className="text-sm text-gray-500 mt-1">
+                  Last updated: {formatDate(lastUpdated)}
+                </p>
+              )}
+            </div>
+            <button
+              onClick={handleManualRefresh}
+              disabled={refreshing}
+              className={`bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition duration-200 flex items-center gap-2 ${refreshing ? 'opacity-50 cursor-not-allowed' : ''}`}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+              {refreshing ? 'Refreshing...' : 'Refresh'}
+            </button>
+          </div>
         </div>
 
         {error && (

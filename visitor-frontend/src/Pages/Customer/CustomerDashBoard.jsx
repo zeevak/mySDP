@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Header from '../../Components/Header';
 import Footer from '../../Components/Footer';
 import { authService } from '../../services/authService';
@@ -7,21 +8,32 @@ const CustomerDashboard = () => {
   const [userData, setUserData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('overview');
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchUserData = async () => {
       try {
+        // Check if user is authenticated
+        const token = localStorage.getItem('token');
+        if (!token) {
+          navigate('/customer/login');
+          return;
+        }
+
         const response = await authService.getCurrentUser();
         setUserData(response.data);
       } catch (error) {
         console.error('Error fetching user data:', error);
+        // If there's an error (like invalid token), redirect to login
+        localStorage.removeItem('token');
+        navigate('/customer/login');
       } finally {
         setIsLoading(false);
       }
     };
 
     fetchUserData();
-  }, []);
+  }, [navigate]);
 
   if (isLoading) {
     return (
@@ -115,15 +127,15 @@ const CustomerDashboard = () => {
                     <div className="grid grid-cols-2 gap-4">
                       <div className="bg-green-50 p-4 rounded-md">
                         <p className="text-sm text-gray-500">Total Invested</p>
-                        <p className="text-2xl font-bold text-green-800">$24,500</p>
+                        <p className="text-2xl font-bold text-green-800">LKR 2,450,000</p>
                       </div>
                       <div className="bg-green-50 p-4 rounded-md">
                         <p className="text-sm text-gray-500">Current Value</p>
-                        <p className="text-2xl font-bold text-green-800">$28,350</p>
+                        <p className="text-2xl font-bold text-green-800">LKR 2,835,000</p>
                       </div>
                       <div className="bg-green-50 p-4 rounded-md">
                         <p className="text-sm text-gray-500">Total Returns</p>
-                        <p className="text-2xl font-bold text-green-800">$3,850</p>
+                        <p className="text-2xl font-bold text-green-800">LKR 385,000</p>
                       </div>
                       <div className="bg-green-50 p-4 rounded-md">
                         <p className="text-sm text-gray-500">ROI</p>
@@ -140,10 +152,10 @@ const CustomerDashboard = () => {
                         <div className="flex justify-between items-start">
                           <div>
                             <p className="font-medium">Quarterly Dividend Paid</p>
-                            <p className="text-sm text-gray-500">Tea Estate Investment</p>
+                            <p className="text-sm text-gray-500">Vanilla Estate Investment</p>
                           </div>
                           <div className="text-right">
-                            <p className="font-medium text-green-600">+$750.00</p>
+                            <p className="font-medium text-green-600">+LKR 75,000</p>
                             <p className="text-sm text-gray-500">Apr 15, 2025</p>
                           </div>
                         </div>
@@ -155,7 +167,7 @@ const CustomerDashboard = () => {
                             <p className="text-sm text-gray-500">Vanilla Cultivation Project</p>
                           </div>
                           <div className="text-right">
-                            <p className="font-medium text-gray-600">$10,000.00</p>
+                            <p className="font-medium text-gray-600">LKR 1,000,000</p>
                             <p className="text-sm text-gray-500">Mar 28, 2025</p>
                           </div>
                         </div>
@@ -164,10 +176,10 @@ const CustomerDashboard = () => {
                         <div className="flex justify-between items-start">
                           <div>
                             <p className="font-medium">Quarterly Dividend Paid</p>
-                            <p className="text-sm text-gray-500">Tea Estate Investment</p>
+                            <p className="text-sm text-gray-500">Sandalwood Estate Investment</p>
                           </div>
                           <div className="text-right">
-                            <p className="font-medium text-green-600">+$750.00</p>
+                            <p className="font-medium text-green-600">+LKR 75,000</p>
                             <p className="text-sm text-gray-500">Jan 15, 2025</p>
                           </div>
                         </div>
@@ -194,11 +206,11 @@ const CustomerDashboard = () => {
                       <tbody className="bg-white divide-y divide-gray-200">
                         <tr>
                           <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="text-sm font-medium text-gray-900">Tea Estate Partnership</div>
+                            <div className="text-sm font-medium text-gray-900">Sandalwood Estate Partnership</div>
                             <div className="text-sm text-gray-500">Nuwara Eliya Region</div>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Oct 12, 2024</td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">$14,500.00</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">LKR 1,450,000</td>
                           <td className="px-6 py-4 whitespace-nowrap">
                             <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Active</span>
                           </td>
@@ -209,7 +221,7 @@ const CustomerDashboard = () => {
                             <div className="text-sm text-gray-500">Matale Region</div>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Mar 28, 2025</td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">$10,000.00</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">LKR 1,000,000</td>
                           <td className="px-6 py-4 whitespace-nowrap">
                             <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">Processing</span>
                           </td>
@@ -245,20 +257,20 @@ const CustomerDashboard = () => {
                           <tr>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Apr 15, 2025</td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Dividend</td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Tea Estate Partnership</td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-green-600">$750.00</td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Sandalwood Estate Partnership</td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-green-600">LKR 75,000</td>
                           </tr>
                           <tr>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Jan 15, 2025</td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Dividend</td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Tea Estate Partnership</td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-green-600">$750.00</td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Sandalwood Estate Partnership</td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-green-600">LKR 75,000</td>
                           </tr>
                           <tr>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Oct 15, 2024</td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Dividend</td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Tea Estate Partnership</td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-green-600">$750.00</td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Sandalwood Estate Partnership</td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-green-600">LKR 75,000</td>
                           </tr>
                         </tbody>
                       </table>
@@ -273,7 +285,7 @@ const CustomerDashboard = () => {
                   <div className="space-y-4">
                     <div className="border border-gray-200 rounded-lg p-4 flex justify-between items-center">
                       <div>
-                        <p className="font-medium">Investment Certificate - Tea Estate</p>
+                        <p className="font-medium">Investment Certificate - Sandalwood Estate</p>
                         <p className="text-sm text-gray-500">Issued: Oct 15, 2024</p>
                       </div>
                       <button className="text-green-700 hover:text-green-800">
