@@ -70,20 +70,28 @@ const AddCustomerLand = () => {
 
   // Filter customers based on search term
   useEffect(() => {
-    if (searchTerm.trim() === '') {
+    if (!searchTerm || searchTerm.trim() === '') {
       setFilteredCustomers(customers);
     } else {
       const filtered = customers.filter(customer => {
-        const fullName = `${customer.title} ${customer.full_name}`.toLowerCase();
-        const customerId = customer.customer_id.toLowerCase();
-        const searchLower = searchTerm.toLowerCase();
+        // Always include currently selected customer in dropdown options so it doesn't visually reset
+        if (formData.customer_id && customer.customer_id === formData.customer_id) {
+          return true;
+        }
+
+        const title = customer.title || '';
+        const fullName = `${title} ${customer.full_name || ''}`.trim().toLowerCase();
+        const customerId = (customer.customer_id || '').toLowerCase();
+        const searchLower = searchTerm.trim().toLowerCase();
 
         return fullName.includes(searchLower) || customerId.includes(searchLower);
       });
 
       setFilteredCustomers(filtered);
     }
-  }, [searchTerm, customers]);
+  }, [searchTerm, customers, formData.customer_id]);
+
+
 
   // Fetch all customers
   const fetchCustomers = async () => {
@@ -320,6 +328,41 @@ const AddCustomerLand = () => {
                         )}
                       </div>
                     </div>
+
+                    {/* Autocomplete Suggestions List */}
+                    {searchTerm && searchTerm.trim() !== '' && (
+                      <div className="border border-gray-200 rounded-md max-h-60 overflow-y-auto mb-3 bg-white shadow-lg divide-y divide-gray-100 relative z-10">
+                        {filteredCustomers.length === 0 ? (
+                          <div className="p-3 text-gray-500 text-sm">No matching customers found</div>
+                        ) : (
+                          filteredCustomers.map((customer) => (
+                            <div
+                              key={customer.customer_id}
+                              onClick={() => {
+                                setFormData(prev => ({
+                                  ...prev,
+                                  customer_id: customer.customer_id
+                                }));
+                                fetchCustomerDetails(customer.customer_id);
+                                setSearchTerm(''); // Clear search term to close suggestions
+                              }}
+                              className="p-3 hover:bg-green-50 cursor-pointer transition duration-150 flex justify-between items-center text-sm"
+                            >
+                              <div>
+                                <span className="font-semibold text-gray-800">
+                                  {customer.title} {customer.full_name}
+                                </span>
+                                <span className="text-gray-500 ml-2">({customer.customer_id})</span>
+                                <div className="text-xs text-gray-400 mt-0.5">{customer.email}</div>
+                              </div>
+                              <span className="text-green-600 font-medium text-xs bg-green-50 px-2 py-1 rounded border border-green-200">
+                                Select
+                              </span>
+                            </div>
+                          ))
+                        )}
+                      </div>
+                    )}
 
                     {/* Customer Dropdown */}
                     <select

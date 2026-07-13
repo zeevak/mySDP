@@ -119,8 +119,9 @@ const EditProposal = () => {
         const authAxios = getAuthAxios();
         
         const response = await authAxios.post('/api/proposal/calculate-installments', {
-          project_value: parseFloat(formData.project_value),
-          payment_mode: formData.payment_mode
+          projectValue: parseFloat(formData.project_value),
+          projectDuration: parseInt(formData.project_duration),
+          paymentMode: formData.payment_mode
         });
 
         if (response.data && response.data.success) {
@@ -133,10 +134,10 @@ const EditProposal = () => {
       }
     };
 
-    if (formData.project_value && formData.payment_mode) {
+    if (formData.project_value && formData.project_duration && formData.payment_mode) {
       calculatePayment();
     }
-  }, [formData.project_value, formData.payment_mode]);
+  }, [formData.project_value, formData.project_duration, formData.payment_mode]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -284,19 +285,19 @@ const EditProposal = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <p className="text-sm text-gray-600">Customer Name</p>
-                  <p className="font-medium">{customer.name}</p>
+                  <p className="font-medium">{customer.title} {customer.full_name}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-600">Contact</p>
-                  <p className="font-medium">{customer.contact}</p>
+                  <p className="text-sm text-gray-600">Phone</p>
+                  <p className="font-medium">{customer.phone_no_1 || 'N/A'}</p>
                 </div>
                 <div>
                   <p className="text-sm text-gray-600">Email</p>
                   <p className="font-medium">{customer.email}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-600">Address</p>
-                  <p className="font-medium">{customer.address}</p>
+                  <p className="text-sm text-gray-600">NIC</p>
+                  <p className="font-medium">{customer.nic_number || 'N/A'}</p>
                 </div>
               </div>
             </div>
@@ -390,8 +391,8 @@ const EditProposal = () => {
                 >
                   <option value="">Select Duration</option>
                   {availableDurations.map(duration => (
-                    <option key={duration.months} value={duration.months}>
-                      {duration.months} months
+                    <option key={duration} value={duration}>
+                      {duration} Year{duration !== 1 ? 's' : ''}
                     </option>
                   ))}
                 </select>

@@ -92,9 +92,15 @@ export const generateMonthlyReportsPDF = async (reportData, dateRange) => {
     yPosition += 15;
     
     // Calculate totals for summary
-    const totalVisitors = reportData.visitorEngagements.reduce((sum, item) => sum + item.visitors, 0);
-    const totalCustomers = reportData.visitorEngagements.reduce((sum, item) => sum + item.customers, 0);
-    const totalProjects = reportData.projects.reduce((sum, item) => sum + item.newProjects, 0);
+    const totalVisitors = reportData.summary?.totalVisitors !== undefined
+      ? reportData.summary.totalVisitors
+      : reportData.visitorEngagements.reduce((sum, item) => sum + item.visitors, 0);
+    const totalCustomers = reportData.summary?.totalCustomers !== undefined
+      ? reportData.summary.totalCustomers
+      : reportData.visitorEngagements.reduce((sum, item) => sum + item.customers, 0);
+    const totalProjects = reportData.summary?.totalProjects !== undefined
+      ? reportData.summary.totalProjects
+      : reportData.projects.reduce((sum, item) => sum + item.newProjects, 0);
     const totalRevenue = reportData.revenue.reduce((sum, item) => sum + item.amount, 0);
     const totalProfit = reportData.profits.reduce((sum, item) => sum + item.amount, 0);
     
@@ -104,8 +110,8 @@ export const generateMonthlyReportsPDF = async (reportData, dateRange) => {
     
     const summaryData = [
       [`Total Visitors:`, `${totalVisitors.toLocaleString()}`],
-      [`New Customers:`, `${totalCustomers.toLocaleString()}`],
-      [`New Projects:`, `${totalProjects.toLocaleString()}`],
+      [`Total Customers:`, `${totalCustomers.toLocaleString()}`],
+      [`Total Projects:`, `${totalProjects.toLocaleString()}`],
       [`Total Revenue:`, `LKR ${totalRevenue.toLocaleString()}`],
       [`Total Profit:`, `LKR ${totalProfit.toLocaleString()}`],
       [`Profit Margin:`, `${totalRevenue > 0 ? ((totalProfit / totalRevenue) * 100).toFixed(1) : 0}%`]
@@ -212,17 +218,19 @@ export const generateMonthlyReportsPDF = async (reportData, dateRange) => {
     pdf.setFont('helvetica', 'normal');
     pdf.setTextColor(0, 0, 0);
     
-    const inventoryItems = [
-      ['Agarwood Plants:', reportData.inventory.agarwoodPlants],
-      ['Compost (kg):', reportData.inventory.compost],
-      ['Tools & Equipment:', reportData.inventory.tools],
-      ['Other Supplies:', reportData.inventory.otherSupplies]
-    ];
+    const inventoryItems = Array.isArray(reportData.inventoryItems) && reportData.inventoryItems.length > 0
+      ? reportData.inventoryItems.map(item => [item.name, item.quantity])
+      : [
+          ['Agarwood Plants:', reportData.inventory?.agarwoodPlants || 0],
+          ['Compost (kg):', reportData.inventory?.compost || 0],
+          ['Tools & Equipment:', reportData.inventory?.tools || 0],
+          ['Other Supplies:', reportData.inventory?.otherSupplies || 0]
+        ];
     
     inventoryItems.forEach(([label, value]) => {
       pdf.text(label, 20, yPosition);
       pdf.setFont('helvetica', 'bold');
-      pdf.text(value.toString(), 80, yPosition);
+      pdf.text(String(value), 80, yPosition);
       pdf.setFont('helvetica', 'normal');
       yPosition += 6;
     });
@@ -290,7 +298,7 @@ export const generateMonthlyReportsPDF = async (reportData, dateRange) => {
       `• Customer conversion rate: ${totalVisitors > 0 ? ((totalCustomers / totalVisitors) * 100).toFixed(1) : 0}%`,
       `• Average monthly revenue: LKR ${(totalRevenue / Math.max(reportData.revenue.length, 1)).toLocaleString()}`,
       `• Project completion tracking shows consistent growth in ongoing projects`,
-      `• Inventory levels indicate good stock management across all categories`,
+      `• Inventory levels reflect the current item quantities in stock`,
       `• Profit margins remain healthy with consistent month-over-month performance`
     ];
     

@@ -8,6 +8,9 @@ const CustomerDashboard = () => {
   const [userData, setUserData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('overview');
+  const [investmentSummary, setInvestmentSummary] = useState(null);
+  const [summaryLoading, setSummaryLoading] = useState(true);
+  const [summaryError, setSummaryError] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -22,6 +25,21 @@ const CustomerDashboard = () => {
 
         const response = await authService.getCurrentUser();
         setUserData(response.data);
+
+        // Fetch actual investment summary
+        try {
+          const summaryRes = await authService.getInvestmentSummary();
+          if (summaryRes.data.success) {
+            setInvestmentSummary(summaryRes.data.data);
+          } else {
+            setSummaryError('Failed to load investment details');
+          }
+        } catch (sumErr) {
+          console.error('Error fetching investment summary:', sumErr);
+          setSummaryError('Error loading investment details');
+        } finally {
+          setSummaryLoading(false);
+        }
       } catch (error) {
         console.error('Error fetching user data:', error);
         // If there's an error (like invalid token), redirect to login
@@ -124,68 +142,81 @@ const CustomerDashboard = () => {
                   {/* Investment Summary */}
                   <div className="bg-white p-6 rounded-lg shadow-md">
                     <h2 className="text-xl font-bold text-green-800 mb-4">Investment Summary</h2>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="bg-green-50 p-4 rounded-md">
-                        <p className="text-sm text-gray-500">Total Invested</p>
-                        <p className="text-2xl font-bold text-green-800">LKR 2,450,000</p>
+                    {summaryLoading ? (
+                      <div className="flex justify-center items-center py-6">
+                        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-green-700"></div>
                       </div>
-                      <div className="bg-green-50 p-4 rounded-md">
-                        <p className="text-sm text-gray-500">Current Value</p>
-                        <p className="text-2xl font-bold text-green-800">LKR 2,835,000</p>
+                    ) : summaryError ? (
+                      <div className="text-sm text-red-600 bg-red-50 p-3 rounded-md">{summaryError}</div>
+                    ) : (
+                      <div className={`grid ${investmentSummary?.isInstallment ? 'grid-cols-2' : 'grid-cols-1 sm:grid-cols-2'} gap-4`}>
+                        <div className="bg-green-50 p-4 rounded-md">
+                          <p className="text-sm text-gray-500">Actual Investment</p>
+                          <p className="text-2xl font-bold text-green-800">
+                            LKR {investmentSummary?.totalInvested?.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                          </p>
+                        </div>
+                        <div className="bg-green-50 p-4 rounded-md">
+                          <p className="text-sm text-gray-500">Payments Done</p>
+                          <p className="text-2xl font-bold text-green-800">
+                            LKR {investmentSummary?.totalPaid?.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                          </p>
+                        </div>
+                        {investmentSummary?.isInstallment && (
+                          <>
+                            <div className="bg-green-50 p-4 rounded-md">
+                              <p className="text-sm text-gray-500">Next Payment Day</p>
+                              <p className="text-2xl font-bold text-green-800">
+                                {investmentSummary?.nextPaymentDate
+                                  ? new Date(investmentSummary.nextPaymentDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+                                  : 'Completed'}
+                              </p>
+                            </div>
+                            <div className="bg-green-50 p-4 rounded-md">
+                              <p className="text-sm text-gray-500">Next Payment Amount</p>
+                              <p className="text-2xl font-bold text-green-800">
+                                LKR {investmentSummary?.nextPaymentAmount?.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                              </p>
+                            </div>
+                          </>
+                        )}
                       </div>
-                      <div className="bg-green-50 p-4 rounded-md">
-                        <p className="text-sm text-gray-500">Total Returns</p>
-                        <p className="text-2xl font-bold text-green-800">LKR 385,000</p>
-                      </div>
-                      <div className="bg-green-50 p-4 rounded-md">
-                        <p className="text-sm text-gray-500">ROI</p>
-                        <p className="text-2xl font-bold text-green-800">15.7%</p>
-                      </div>
-                    </div>
+                    )}
                   </div>
 
                   {/* Recent Activity */}
                   <div className="bg-white p-6 rounded-lg shadow-md">
                     <h2 className="text-xl font-bold text-green-800 mb-4">Recent Activity</h2>
-                    <div className="space-y-4">
-                      <div className="border-b border-gray-100 pb-3">
-                        <div className="flex justify-between items-start">
-                          <div>
-                            <p className="font-medium">Quarterly Dividend Paid</p>
-                            <p className="text-sm text-gray-500">Vanilla Estate Investment</p>
-                          </div>
-                          <div className="text-right">
-                            <p className="font-medium text-green-600">+LKR 75,000</p>
-                            <p className="text-sm text-gray-500">Apr 15, 2025</p>
-                          </div>
-                        </div>
+                    {summaryLoading ? (
+                      <div className="flex justify-center items-center py-6">
+                        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-green-700"></div>
                       </div>
-                      <div className="border-b border-gray-100 pb-3">
-                        <div className="flex justify-between items-start">
-                          <div>
-                            <p className="font-medium">Investment Confirmation</p>
-                            <p className="text-sm text-gray-500">Vanilla Cultivation Project</p>
+                    ) : summaryError ? (
+                      <div className="text-sm text-red-600 bg-red-50 p-3 rounded-md">{summaryError}</div>
+                    ) : !investmentSummary?.recentActivity || investmentSummary.recentActivity.length === 0 ? (
+                      <div className="text-sm text-gray-500 text-center py-4">No recent payment activity.</div>
+                    ) : (
+                      <div className="space-y-4">
+                        {investmentSummary.recentActivity.map(act => (
+                          <div key={act.payment_id} className="border-b border-gray-100 pb-3">
+                            <div className="flex justify-between items-start">
+                              <div>
+                                <p className="font-medium text-gray-800">{act.payment_detail}</p>
+                                <p className="text-xs text-gray-500">Payment Confirmation</p>
+                              </div>
+                              <div className="text-right">
+                                <p className="font-semibold text-green-600">
+                                  + LKR {parseFloat(act.amount).toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                                </p>
+                                <p className="text-xs text-gray-400">
+                                  {new Date(act.payment_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                                </p>
+                              </div>
+                            </div>
                           </div>
-                          <div className="text-right">
-                            <p className="font-medium text-gray-600">LKR 1,000,000</p>
-                            <p className="text-sm text-gray-500">Mar 28, 2025</p>
-                          </div>
-                        </div>
+                        ))}
                       </div>
-                      <div className="border-b border-gray-100 pb-3">
-                        <div className="flex justify-between items-start">
-                          <div>
-                            <p className="font-medium">Quarterly Dividend Paid</p>
-                            <p className="text-sm text-gray-500">Sandalwood Estate Investment</p>
-                          </div>
-                          <div className="text-right">
-                            <p className="font-medium text-green-600">+LKR 75,000</p>
-                            <p className="text-sm text-gray-500">Jan 15, 2025</p>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                    <button className="mt-4 text-green-700 text-sm font-medium hover:underline">View All Activity</button>
+                    )}
                   </div>
                 </>
               )}

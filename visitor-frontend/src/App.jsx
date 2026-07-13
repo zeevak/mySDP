@@ -14,8 +14,10 @@ import ResultsCalculation from './Pages/Visitor/ResultsCalculation';
 
 // Product pages
 import Agarwood from './Pages/Visitor/Products/Agarwood';
-import Vanilla from './Pages/Visitor/Products/Vanilla';
+import Rubber from './Pages/Visitor/Products/Rubber';
 import Sandalwood from './Pages/Visitor/Products/Sandalwood';
+import Tea from './Pages/Visitor/Products/Tea';
+import Vanilla from './Pages/Visitor/Products/Vanilla';
 
 function App() {
   return (
@@ -32,8 +34,10 @@ function App() {
 
       {/* Product Routes */}
       <Route path="/products/agarwood" element={<Agarwood />} />
-      <Route path="/products/vanilla" element={<Vanilla />} />
+      <Route path="/products/rubber" element={<Rubber />} />
       <Route path="/products/sandalwood" element={<Sandalwood />} />
+      <Route path="/products/tea" element={<Tea />} />
+      <Route path="/products/vanilla" element={<Vanilla />} />
 
       {/* Investment Routes */}
       <Route path="/investment" element={<HomePage />} />

@@ -9,42 +9,42 @@ const ProjectsPage = () => {
       id: 1,
       title: "Sandalwood Plantation Development",
       category: "Sandalwood Cultivation",
-      image: "/images/projects/sandalwood-plantation.jpg",
+      image: "/src/assets/sandalwood-plantation.jpg",
       description: "Expansion of premium sandalwood cultivation across 30 hectares, implementing sustainable farming practices with a 15-year yield cycle."
     },
     {
       id: 2,
       title: "Organic Certification Program",
       category: "Sustainability",
-      image: "/images/projects/organic-certification.jpg",
+      image: "/src/assets/organic-certification.jpg",
       description: "Implementation of organic certification standards across all our plantations, resulting in USDA and EU organic certifications."
     },
     {
       id: 3,
       title: "Vanilla Cultivation Initiative",
       category: "Spice Farming",
-      image: "/images/projects/vanilla-plantation.jpg",
+      image: "/src/assets/vanilla-plantation.jpg",
       description: "Introduction of premium vanilla cultivation with 2,000 vines per acre, yielding approximately 4kg per vine after 2.5 years."
     },
     {
       id: 4,
       title: "Agarwood Processing Facility",
       category: "Agarwood Production",
-      image: "/images/projects/agarwood-facility.jpg",
+      image: "/src/assets/agarwood-facility.jpg",
       description: "State-of-the-art processing facility for producing premium agarwood products with expected yields of 30-40kg per tree after 10 years."
     },
     {
       id: 5,
       title: "Community Development Program",
       category: "Social Responsibility",
-      image: "/images/projects/community-program.jpg",
+      image: "/src/assets/community-program.jpg",
       description: "Comprehensive initiative providing education, healthcare, and housing improvements for plantation worker communities."
     },
     {
       id: 6,
       title: "Water Conservation System",
       category: "Environmental Sustainability",
-      image: "/images/projects/water-conservation.jpg",
+      image: "/src/assets/water-conservation.jpg",
       description: "Implementation of advanced irrigation and rainwater harvesting systems, reducing water consumption by 40% across our plantations."
     }
   ];

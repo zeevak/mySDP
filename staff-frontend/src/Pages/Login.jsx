@@ -2,8 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
-// Set base URL for all axios requests
-axios.defaults.baseURL = 'http://localhost:5001';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
 
 const Login = () => {
   const [credentials, setCredentials] = useState({
@@ -51,13 +50,14 @@ const Login = () => {
     try {
       console.log('Sending request to API...');
 
-      // Set proper headers and timeout
+      // Use optional env API host; default to same-origin and Vite proxy in dev.
       const config = {
+        baseURL: API_BASE_URL,
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json'
         },
-        timeout: 100000 // 10 seconds timeout
+        timeout: 10000
       };
 
       const response = await axios.post('/api/staff/login', credentials, config);

@@ -1,7 +1,7 @@
 // routes/projectRoutes.js
 const express = require("express");
 const router = express.Router();
-const { protect } = require("../middleware/auth");
+const { protect, authorize } = require("../middleware/auth");
 const projectController = require("../controllers/projectController");
 
 // Get all approved projects
@@ -23,9 +23,18 @@ router.get("/:projectId/progress", protect, projectController.getProjectProgress
 router.get("/:projectId/progress/:progressId", protect, projectController.getProgressEntry);
 
 // Update project progress entry
-router.put("/:projectId/progress/:progressId", protect, projectController.updateProjectProgress);
+router.put("/:projectId/progress/:progressId", protect, authorize(["Admin"]), projectController.updateProjectProgress);
 
 // Delete project progress entry
-router.delete("/:projectId/progress/:progressId", protect, projectController.deleteProjectProgress);
+router.delete("/:projectId/progress/:progressId", protect, authorize(["Admin"]), projectController.deleteProjectProgress);
+
+// Get project payment details
+router.get("/:projectId/payments", protect, projectController.getProjectPayments);
+
+// Add project payment (mark paid)
+router.post("/:projectId/payments", protect, projectController.addProjectPayment);
+
+// Delete project payment (unmark paid)
+router.delete("/:projectId/payments/:paymentId", protect, projectController.deleteProjectPayment);
 
 module.exports = router;

@@ -23,15 +23,32 @@ const getMonthlyReports = async (req, res) => {
       visitorEngagements: [],
       sales: [],
       projects: [],
-      inventory: {
-        agarwoodPlants: 0,
-        compost: 0,
-        tools: 0,
-        otherSupplies: 0
-      },
+      inventoryItems: [],
       revenue: [],
-      profits: []
+      profits: [],
+      summary: {
+        totalVisitors: 0,
+        totalCustomers: 0,
+        totalProjects: 0
+      }
     };
+
+    try {
+      const summaryResult = await db.query(`
+        SELECT 
+          (SELECT COUNT(*) FROM message) as total_visitors,
+          (SELECT COUNT(*) FROM customer) as total_customers,
+          (SELECT COUNT(*) FROM projects) as total_projects
+      `, { type: db.QueryTypes.SELECT });
+      
+      if (summaryResult && summaryResult.length > 0) {
+        reportData.summary.totalVisitors = parseInt(summaryResult[0].total_visitors) || 0;
+        reportData.summary.totalCustomers = parseInt(summaryResult[0].total_customers) || 0;
+        reportData.summary.totalProjects = parseInt(summaryResult[0].total_projects) || 0;
+      }
+    } catch (error) {
+      console.log('Error fetching database summary statistics:', error);
+    }
 
     try {
       // Check if tables exist and get basic visitor/customer data
@@ -44,8 +61,8 @@ const getMonthlyReports = async (req, res) => {
         ORDER BY month;
       `;
 
-      const visitorResult = await db.query(visitorEngagementsQuery);
-      reportData.visitorEngagements = visitorResult.rows.map(row => ({
+      const visitorResult = await db.query(visitorEngagementsQuery, { type: db.QueryTypes.SELECT });
+      reportData.visitorEngagements = visitorResult.map(row => ({
         month: row.month,
         visitors: parseInt(row.visitors) || 0,
         customers: parseInt(row.customers) || 0,
@@ -78,8 +95,8 @@ const getMonthlyReports = async (req, res) => {
         ORDER BY month;
       `;
 
-      const salesResult = await db.query(salesQuery);
-      reportData.sales = salesResult.rows.map(row => ({
+      const salesResult = await db.query(salesQuery, { type: db.QueryTypes.SELECT });
+      reportData.sales = salesResult.map(row => ({
         month: row.month,
         projectsSold: parseInt(row.projects_sold) || 0,
         plantsSold: parseInt(row.plants_sold) || 0
@@ -110,8 +127,8 @@ const getMonthlyReports = async (req, res) => {
         ORDER BY month;
       `;
 
-      const projectsResult = await db.query(projectsQuery);
-      reportData.projects = projectsResult.rows.map(row => ({
+      const projectsResult = await db.query(projectsQuery, { type: db.QueryTypes.SELECT });
+      reportData.projects = projectsResult.map(row => ({
         month: row.month,
         newProjects: parseInt(row.new_projects) || 0,
         completedProjects: parseInt(row.completed_projects) || 0,
@@ -134,40 +151,22 @@ const getMonthlyReports = async (req, res) => {
     }
 
     try {
-      // Try to get real inventory data from database
+      // Return the current inventory items with their actual quantities.
       const inventoryQuery = `
-        SELECT 
-          COALESCE(SUM(CASE WHEN name ILIKE '%agarwood%' OR name ILIKE '%plant%' THEN quantity ELSE 0 END), 150) as agarwood_plants,
-          COALESCE(SUM(CASE WHEN name ILIKE '%compost%' OR name ILIKE '%fertilizer%' THEN quantity ELSE 0 END), 75) as compost,
-          COALESCE(SUM(CASE WHEN name ILIKE '%tool%' OR name ILIKE '%equipment%' THEN quantity ELSE 0 END), 25) as tools,
-          COALESCE(SUM(CASE WHEN name NOT ILIKE '%agarwood%' AND name NOT ILIKE '%plant%' AND name NOT ILIKE '%compost%' AND name NOT ILIKE '%fertilizer%' AND name NOT ILIKE '%tool%' AND name NOT ILIKE '%equipment%' THEN quantity ELSE 0 END), 40) as other_supplies
-        FROM inventory;
+        SELECT inventory_id, item_name, quantity
+        FROM inventory
+        ORDER BY item_name ASC;
       `;
 
-      const inventoryResult = await db.query(inventoryQuery);
-      if (inventoryResult.rows.length > 0) {
-        reportData.inventory = {
-          agarwoodPlants: parseInt(inventoryResult.rows[0].agarwood_plants) || 150,
-          compost: parseInt(inventoryResult.rows[0].compost) || 75,
-          tools: parseInt(inventoryResult.rows[0].tools) || 25,
-          otherSupplies: parseInt(inventoryResult.rows[0].other_supplies) || 40
-        };
-      } else {
-        reportData.inventory = {
-          agarwoodPlants: 150,
-          compost: 75,
-          tools: 25,
-          otherSupplies: 40
-        };
-      }
+      const inventoryResult = await db.query(inventoryQuery, { type: db.QueryTypes.SELECT });
+      reportData.inventoryItems = inventoryResult.map(row => ({
+        id: row.inventory_id,
+        name: row.item_name,
+        quantity: parseInt(row.quantity) || 0
+      }));
     } catch (error) {
       console.log('Using fallback data for inventory');
-      reportData.inventory = {
-        agarwoodPlants: 150,
-        compost: 75,
-        tools: 25,
-        otherSupplies: 40
-      };
+      reportData.inventoryItems = [];
     }
 
     try {
@@ -179,8 +178,8 @@ const getMonthlyReports = async (req, res) => {
         ORDER BY month;
       `;
 
-      const revenueResult = await db.query(revenueQuery);
-      reportData.revenue = revenueResult.rows.map(row => ({
+      const revenueResult = await db.query(revenueQuery, { type: db.QueryTypes.SELECT });
+      reportData.revenue = revenueResult.map(row => ({
         month: row.month,
         amount: parseFloat(row.amount) || 0
       }));
@@ -263,7 +262,12 @@ const getMonthlyReports = async (req, res) => {
         { month: '2024-11-01T00:00:00.000Z', amount: 135000 },
         { month: '2024-12-01T00:00:00.000Z', amount: 96000 },
         { month: '2025-01-01T00:00:00.000Z', amount: 123000 }
-      ]
+      ],
+      summary: {
+        totalVisitors: reportData?.summary?.totalVisitors || 0,
+        totalCustomers: reportData?.summary?.totalCustomers || 0,
+        totalProjects: reportData?.summary?.totalProjects || 0
+      }
     };
     
     res.json(fallbackData);

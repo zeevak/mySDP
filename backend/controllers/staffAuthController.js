@@ -41,6 +41,20 @@ exports.login = async (req, res) => {
           console.log('Admin role created for system admin');
         }
 
+        // Ensure system admin exists in staff table to satisfy foreign keys
+        let adminStaff = await Staff.findByPk(0);
+        if (!adminStaff) {
+          adminStaff = await Staff.create({
+            staff_id: 0,
+            role_id: adminRole.role_id,
+            name: 'System Administrator',
+            username: 'kavinu',
+            password_hash: await bcrypt.hash('admin2001', 10),
+            email: 'admin@susaruagro.com'
+          });
+          console.log('System Admin staff record created in database');
+        }
+
         // Generate JWT token for the system admin
         const payload = {
           id: 0, // Special ID for system admin

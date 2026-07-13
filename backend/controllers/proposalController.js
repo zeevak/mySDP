@@ -183,12 +183,12 @@ exports.createProposal = async (req, res) => {
     if (customer_land_id) {
       // Validate customer land exists and belongs to the customer
       const customerLand = await CustomerLand.findOne({
-        where: { 
+        where: {
           customer_land_id: customer_land_id,
           customer_id: customer_id
         }
       });
-      
+
       if (!customerLand) {
         return res.status(404).json({
           success: false,
@@ -272,8 +272,8 @@ exports.getAllProposals = async (req, res) => {
     const transformedProposals = proposals.map(proposal => ({
       ...proposal.toJSON(),
       customer_name: proposal.Customer ? proposal.Customer.full_name : 'Unknown',
-      land_info: proposal.CustomerLand ? 
-        `${proposal.CustomerLand.city}, ${proposal.CustomerLand.district}, ${proposal.CustomerLand.province} (${proposal.CustomerLand.land_size} acres)` : 
+      land_info: proposal.CustomerLand ?
+        `${proposal.CustomerLand.city}, ${proposal.CustomerLand.district}, ${proposal.CustomerLand.province} (${proposal.CustomerLand.land_size} perch)` :
         'No land selected',
       needs_land_selection: !proposal.customer_land_id // Flag to indicate if land selection is needed
     }));
@@ -409,7 +409,7 @@ exports.updateProposalStatus = async (req, res) => {
     // If proposal is approved, create a project for it automatically
     if (status === 'Approved') {
       const Project = require('../models/Project');
-      
+
       // Check if project already exists
       const existingProject = await Project.findOne({
         where: { proposal_id: proposal.proposal_id }
@@ -503,7 +503,7 @@ exports.getCustomerLands = async (req, res) => {
       climate_zone: land.climate_zone,
       soil_type: land.soil_type,
       has_water: land.has_water,
-      description: `${land.land_size} acres in ${land.city}, ${land.district} (${land.climate_zone})`
+      description: `${land.land_size} perch in ${land.city}, ${land.district} (${land.climate_zone})`
     }));
 
     res.status(200).json({
@@ -549,12 +549,12 @@ exports.updateProposalLand = async (req, res) => {
 
     // Validate that the land belongs to the customer
     const customerLand = await CustomerLand.findOne({
-      where: { 
+      where: {
         customer_land_id: customer_land_id,
         customer_id: proposal.customer_id
       }
     });
-    
+
     if (!customerLand) {
       return res.status(404).json({
         success: false,

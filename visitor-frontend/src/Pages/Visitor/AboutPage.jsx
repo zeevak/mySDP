@@ -9,7 +9,7 @@ const AboutPage = () => {
       id: 1,
       name: "Deshabandhu Idippulige",
       role: "Founder & CEO",
-      image: "/images/team/chandana.jpg",
+      image: "/images/team/deshabandhu.jpg",
       bio: "Deshabandhu has over 20 years of experience in plantation management and sustainable agriculture."
     },
     {
@@ -65,7 +65,7 @@ const AboutPage = () => {
                 </p>
               </div>
               <div>
-                <img src="/images/about/plantation-aerial.jpg" alt="Susaru Plantation" className="rounded-lg shadow-lg" />
+                <img src="src/assets/plantation-aerial.jpg" alt="Susaru Plantation" className="rounded-lg shadow-lg" />
               </div>
             </div>
           </div>
@@ -115,25 +115,25 @@ const AboutPage = () => {
             <h2 className="text-3xl font-bold text-center mb-12 text-green-800">Our Certifications</h2>
             <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
               <div className="bg-white p-6 rounded-lg shadow text-center border border-green-100">
-                <img src="/images/certifications/organic.png" alt="Organic Certification" className="h-24 mx-auto mb-4" />
+                <img src="src/assets/USDA.png" alt="Organic Certification" className="h-24 mx-auto mb-4" />
                 <h3 className="text-lg font-bold text-green-800">USDA Organic</h3>
                 <p className="text-gray-600">Certified organic cultivation practices free from synthetic pesticides and fertilizers</p>
               </div>
               
               <div className="bg-white p-6 rounded-lg shadow text-center border border-green-100">
-                <img src="/images/certifications/fsc.png" alt="FSC Certification" className="h-24 mx-auto mb-4" />
+                <img src="src/assets/fsc.png" alt="FSC Certification" className="h-24 mx-auto mb-4" />
                 <h3 className="text-lg font-bold text-green-800">FSC Certified</h3>
                 <p className="text-gray-600">Forest Stewardship Council certification for responsible forest management</p>
               </div>
               
               <div className="bg-white p-6 rounded-lg shadow text-center border border-green-100">
-                <img src="/images/certifications/rainforest-alliance.png" alt="Rainforest Alliance" className="h-24 mx-auto mb-4" />
+                <img src="src/assets/rfa.png" alt="Rainforest Alliance" className="h-24 mx-auto mb-4" />
                 <h3 className="text-lg font-bold text-green-800">Rainforest Alliance</h3>
                 <p className="text-gray-600">Meeting comprehensive sustainability standards for environmental protection</p>
               </div>
               
               <div className="bg-white p-6 rounded-lg shadow text-center border border-green-100">
-                <img src="/images/certifications/fair-trade.png" alt="Fair Trade" className="h-24 mx-auto mb-4" />
+                <img src="src/assets/ft.png" alt="Fair Trade" className="h-24 mx-auto mb-4" />
                 <h3 className="text-lg font-bold text-green-800">Fair Trade</h3>
                 <p className="text-gray-600">Ensuring fair prices, decent working conditions, and community development</p>
               </div>

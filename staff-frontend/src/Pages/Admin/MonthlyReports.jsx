@@ -36,9 +36,14 @@ const MonthlyReports = () => {
     visitorEngagements: [],
     sales: [],
     projects: [],
-    inventory: {},
+    inventoryItems: [],
     revenue: [],
-    profits: []
+    profits: [],
+    summary: {
+      totalVisitors: 0,
+      totalCustomers: 0,
+      totalProjects: 0
+    }
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -183,27 +188,28 @@ const MonthlyReports = () => {
   };
 
   // Inventory Distribution (Pie Chart)
+  const inventoryLabels = reportData.inventoryItems.map(item => item.name);
+  const inventoryValues = reportData.inventoryItems.map(item => item.quantity);
   const inventoryChartData = {
-    labels: ['Agarwood Plants', 'Compost', 'Tools & Equipment', 'Other Supplies'],
+    labels: inventoryLabels.length > 0 ? inventoryLabels : ['No Inventory Data'],
     datasets: [
       {
-        data: [
-          reportData.inventory.agarwoodPlants || 0,
-          reportData.inventory.compost || 0,
-          reportData.inventory.tools || 0,
-          reportData.inventory.otherSupplies || 0
-        ],
+        data: inventoryValues.length > 0 ? inventoryValues : [1],
         backgroundColor: [
           'rgba(34, 197, 94, 0.8)',
           'rgba(168, 85, 247, 0.8)',
           'rgba(59, 130, 246, 0.8)',
-          'rgba(251, 191, 36, 0.8)'
+          'rgba(251, 191, 36, 0.8)',
+          'rgba(239, 68, 68, 0.8)',
+          'rgba(14, 165, 233, 0.8)'
         ],
         borderColor: [
           'rgba(34, 197, 94, 1)',
           'rgba(168, 85, 247, 1)',
           'rgba(59, 130, 246, 1)',
-          'rgba(251, 191, 36, 1)'
+          'rgba(251, 191, 36, 1)',
+          'rgba(239, 68, 68, 1)',
+          'rgba(14, 165, 233, 1)'
         ],
         borderWidth: 1,
       },
@@ -437,8 +443,11 @@ const MonthlyReports = () => {
                         callbacks: {
                           label: function(context) {
                             const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                            if (!total) {
+                              return `${context.label}: 0`;
+                            }
                             const percentage = ((context.parsed * 100) / total).toFixed(1);
-                            return `${context.label}: ${context.parsed} (${percentage}%)`;
+                            return `${context.label}: ${context.parsed.toLocaleString()} (${percentage}%)`;
                           }
                         }
                       },
@@ -463,19 +472,19 @@ const MonthlyReports = () => {
                 <div className="bg-blue-50 p-4 rounded-lg">
                   <h3 className="text-sm font-medium text-blue-600">Total Visitors</h3>
                   <p className="text-2xl font-bold text-blue-900">
-                    {reportData.visitorEngagements.reduce((sum, item) => sum + item.visitors, 0)}
+                    {reportData.summary?.totalVisitors || 0}
                   </p>
                 </div>
                 <div className="bg-green-50 p-4 rounded-lg">
-                  <h3 className="text-sm font-medium text-green-600">New Customers</h3>
+                  <h3 className="text-sm font-medium text-green-600">Total Customers</h3>
                   <p className="text-2xl font-bold text-green-900">
-                    {reportData.visitorEngagements.reduce((sum, item) => sum + item.customers, 0)}
+                    {reportData.summary?.totalCustomers || 0}
                   </p>
                 </div>
                 <div className="bg-purple-50 p-4 rounded-lg">
                   <h3 className="text-sm font-medium text-purple-600">Total Projects</h3>
                   <p className="text-2xl font-bold text-purple-900">
-                    {reportData.projects.reduce((sum, item) => sum + item.newProjects, 0)}
+                    {reportData.summary?.totalProjects || 0}
                   </p>
                 </div>
                 <div className="bg-yellow-50 p-4 rounded-lg">
