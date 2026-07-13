@@ -15,5 +15,6 @@ router.post("/login", customerAuthController.login);
 
 // Protected customer routes
 router.get("/me", protect, authorize('customer'), customerAuthController.getCurrentCustomer);
+router.put("/change-password", protect, authorize('customer'), customerAuthController.changePassword);
 
 module.exports = router;

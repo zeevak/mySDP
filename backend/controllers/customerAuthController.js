@@ -245,3 +245,70 @@ exports.getCurrentCustomer = async (req, res) => {
     });
   }
 };
+
+/**
+ * Change Password
+ * Changes the password of the currently authenticated customer
+ * @param {Object} req - Express request object with password details
+ * @param {Object} res - Express response object
+ */
+exports.changePassword = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { oldPassword, newPassword, confirmPassword } = req.body;
+
+    if (!oldPassword || !newPassword || !confirmPassword) {
+      return res.status(400).json({
+        success: false,
+        message: "All fields are required"
+      });
+    }
+
+    if (newPassword !== confirmPassword) {
+      return res.status(400).json({
+        success: false,
+        message: "New passwords do not match"
+      });
+    }
+
+    // Find customer
+    const customer = await Customer.findByPk(userId);
+    if (!customer) {
+      return res.status(404).json({
+        success: false,
+        message: "Customer not found"
+      });
+    }
+
+    // Verify old password
+    const isMatch = await bcrypt.compare(oldPassword, customer.password_hash);
+    if (!isMatch) {
+      return res.status(401).json({
+        success: false,
+        message: "Incorrect current password"
+      });
+    }
+
+    // Hash the new password
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(newPassword, salt);
+
+    // Update password in database
+    customer.password_hash = hashedPassword;
+    await customer.save();
+
+    res.json({
+      success: true,
+      message: "Password changed successfully"
+    });
+
+    console.log(`Password changed for customer ${customer.email} at ${new Date().toISOString()}`);
+  } catch (err) {
+    console.error("Change Password Error:", err);
+    res.status(500).json({
+      success: false,
+      message: "Internal server error while changing password"
+    });
+  }
+};
+

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import Header from '../../Components/Header';
 import Footer from '../../Components/Footer';
 import { authService } from '../../services/authService';
+import ChangePasswordForm from './ChangePasswordForm';
 
 const CustomerDashboard = () => {
   const [userData, setUserData] = useState(null);
@@ -11,6 +12,7 @@ const CustomerDashboard = () => {
   const [investmentSummary, setInvestmentSummary] = useState(null);
   const [summaryLoading, setSummaryLoading] = useState(true);
   const [summaryError, setSummaryError] = useState(null);
+  const [showPasswordForm, setShowPasswordForm] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -413,7 +415,13 @@ const CustomerDashboard = () => {
                           <input type="password" className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500" value="********" readOnly />
                         </div>
                       </div>
-                      <button className="mt-4 px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition duration-300">Change Password</button>
+                      <button 
+                        onClick={() => setShowPasswordForm(!showPasswordForm)}
+                        className="mt-4 px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition duration-300"
+                      >
+                        {showPasswordForm ? 'Hide Form' : 'Change Password'}
+                      </button>
+                      {showPasswordForm && <ChangePasswordForm />}
                     </div>
                   </div>
                 </div>
