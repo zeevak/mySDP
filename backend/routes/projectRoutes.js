@@ -37,4 +37,7 @@ router.post("/:projectId/payments", protect, projectController.addProjectPayment
 // Delete project payment (unmark paid)
 router.delete("/:projectId/payments/:paymentId", protect, projectController.deleteProjectPayment);
 
+// Update project payment date
+router.put("/:projectId/payments/:paymentId", protect, authorize(["Admin"]), projectController.updateProjectPayment);
+
 module.exports = router;

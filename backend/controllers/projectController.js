@@ -775,3 +775,66 @@ exports.deleteProjectPayment = async (req, res) => {
     });
   }
 };
+
+// Update project payment date
+exports.updateProjectPayment = async (req, res) => {
+  try {
+    const { projectId, paymentId } = req.params;
+    const { payment_date } = req.body;
+
+    if (!payment_date) {
+      return res.status(400).json({
+        success: false,
+        message: 'Payment date is required'
+      });
+    }
+
+    const project = await Project.findByPk(projectId, {
+      include: [{ model: Proposal, as: 'proposal' }]
+    });
+
+    if (!project) {
+      return res.status(404).json({
+        success: false,
+        message: 'Project not found'
+      });
+    }
+
+    const proposal = project.proposal;
+    if (!proposal) {
+      return res.status(404).json({
+        success: false,
+        message: 'Proposal not found'
+      });
+    }
+
+    const payment = await Payment.findOne({
+      where: {
+        payment_id: paymentId,
+        proposal_id: proposal.proposal_id
+      }
+    });
+
+    if (!payment) {
+      return res.status(404).json({
+        success: false,
+        message: 'Payment record not found'
+      });
+    }
+
+    payment.payment_date = new Date(payment_date);
+    await payment.save();
+
+    res.json({
+      success: true,
+      data: payment,
+      message: 'Payment date updated successfully'
+    });
+  } catch (err) {
+    console.error('Error updating project payment:', err);
+    res.status(500).json({
+      success: false,
+      message: 'Server error while updating project payment'
+    });
+  }
+};

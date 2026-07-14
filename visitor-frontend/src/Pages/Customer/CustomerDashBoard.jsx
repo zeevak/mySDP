@@ -13,6 +13,7 @@ const CustomerDashboard = () => {
   const [summaryLoading, setSummaryLoading] = useState(true);
   const [summaryError, setSummaryError] = useState(null);
   const [showPasswordForm, setShowPasswordForm] = useState(false);
+  const [selectedProjectId, setSelectedProjectId] = useState('all');
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -54,6 +55,36 @@ const CustomerDashboard = () => {
 
     fetchUserData();
   }, [navigate]);
+
+  const projects = investmentSummary?.projects || [];
+  const hasMultipleProjects = projects.length > 1;
+
+  const displayedSummary = (() => {
+    if (!investmentSummary) return null;
+    if (selectedProjectId === 'all' || !hasMultipleProjects) {
+      return {
+        totalInvested: investmentSummary.totalInvested,
+        totalPaid: investmentSummary.totalPaid,
+        isInstallment: investmentSummary.isInstallment,
+        nextPaymentDate: investmentSummary.nextPaymentDate,
+        nextPaymentAmount: investmentSummary.nextPaymentAmount,
+        recentActivity: investmentSummary.recentActivity,
+        projectDetails: null
+      };
+    }
+    const proj = projects.find(p => p.proposalId === selectedProjectId);
+    if (!proj) return null;
+    return {
+      totalInvested: proj.totalInvested,
+      totalPaid: proj.totalPaid,
+      isInstallment: proj.isInstallment,
+      nextPaymentDate: proj.nextPaymentDate,
+      nextPaymentAmount: proj.nextPaymentAmount,
+      recentActivity: proj.recentActivity,
+      projectDetails: proj.projectDetails,
+      projectType: proj.projectType
+    };
+  })();
 
   if (isLoading) {
     return (
@@ -143,7 +174,37 @@ const CustomerDashboard = () => {
                 <>
                   {/* Investment Summary */}
                   <div className="bg-white p-6 rounded-lg shadow-md">
-                    <h2 className="text-xl font-bold text-green-800 mb-4">Investment Summary</h2>
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 border-b border-gray-100 pb-3 gap-2">
+                      <h2 className="text-xl font-bold text-green-800">Investment Summary</h2>
+                      {hasMultipleProjects && (
+                        <div className="flex space-x-2 overflow-x-auto py-1">
+                          <button
+                            onClick={() => setSelectedProjectId('all')}
+                            className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-colors duration-200 ${
+                              selectedProjectId === 'all'
+                                ? 'bg-green-700 text-white shadow-sm'
+                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                            }`}
+                          >
+                            All Projects
+                          </button>
+                          {projects.map(proj => (
+                            <button
+                              key={proj.proposalId}
+                              onClick={() => setSelectedProjectId(proj.proposalId)}
+                              className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-colors duration-200 ${
+                                selectedProjectId === proj.proposalId
+                                  ? 'bg-green-700 text-white shadow-sm'
+                                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                              }`}
+                            >
+                              {proj.projectType} ({proj.proposalId})
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+
                     {summaryLoading ? (
                       <div className="flex justify-center items-center py-6">
                         <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-green-700"></div>
@@ -151,38 +212,69 @@ const CustomerDashboard = () => {
                     ) : summaryError ? (
                       <div className="text-sm text-red-600 bg-red-50 p-3 rounded-md">{summaryError}</div>
                     ) : (
-                      <div className={`grid ${investmentSummary?.isInstallment ? 'grid-cols-2' : 'grid-cols-1 sm:grid-cols-2'} gap-4`}>
-                        <div className="bg-green-50 p-4 rounded-md">
-                          <p className="text-sm text-gray-500">Actual Investment</p>
-                          <p className="text-2xl font-bold text-green-800">
-                            LKR {investmentSummary?.totalInvested?.toLocaleString('en-US', { minimumFractionDigits: 2 })}
-                          </p>
+                      <>
+                        <div className={`grid ${displayedSummary?.isInstallment ? 'grid-cols-2' : 'grid-cols-1 sm:grid-cols-2'} gap-4`}>
+                          <div className="bg-green-50 p-4 rounded-md">
+                            <p className="text-sm text-gray-500">Actual Investment</p>
+                            <p className="text-2xl font-bold text-green-800">
+                              LKR {displayedSummary?.totalInvested?.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                            </p>
+                          </div>
+                          <div className="bg-green-50 p-4 rounded-md">
+                            <p className="text-sm text-gray-500">Payments Done</p>
+                            <p className="text-2xl font-bold text-green-800">
+                              LKR {displayedSummary?.totalPaid?.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                            </p>
+                          </div>
+                          {displayedSummary?.isInstallment && (
+                            <>
+                              <div className="bg-green-50 p-4 rounded-md">
+                                <p className="text-sm text-gray-500">Next Payment Day</p>
+                                <p className="text-2xl font-bold text-green-800">
+                                  {displayedSummary?.nextPaymentDate
+                                    ? new Date(displayedSummary.nextPaymentDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+                                    : 'Completed'}
+                                </p>
+                              </div>
+                              <div className="bg-green-50 p-4 rounded-md">
+                                <p className="text-sm text-gray-500">Next Payment Amount</p>
+                                <p className="text-2xl font-bold text-green-800">
+                                  LKR {displayedSummary?.nextPaymentAmount?.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                                </p>
+                              </div>
+                            </>
+                          )}
                         </div>
-                        <div className="bg-green-50 p-4 rounded-md">
-                          <p className="text-sm text-gray-500">Payments Done</p>
-                          <p className="text-2xl font-bold text-green-800">
-                            LKR {investmentSummary?.totalPaid?.toLocaleString('en-US', { minimumFractionDigits: 2 })}
-                          </p>
-                        </div>
-                        {investmentSummary?.isInstallment && (
-                          <>
-                            <div className="bg-green-50 p-4 rounded-md">
-                              <p className="text-sm text-gray-500">Next Payment Day</p>
-                              <p className="text-2xl font-bold text-green-800">
-                                {investmentSummary?.nextPaymentDate
-                                  ? new Date(investmentSummary.nextPaymentDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
-                                  : 'Completed'}
-                              </p>
+
+                        {displayedSummary?.projectDetails && (
+                          <div className="mt-6 border-t border-gray-150 pt-4">
+                            <h3 className="text-sm font-semibold text-green-800 mb-2">Project Progress Details</h3>
+                            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 bg-green-50/50 p-4 rounded-md">
+                              <div>
+                                <p className="text-xs text-gray-500">Status</p>
+                                <p className="text-sm font-semibold text-gray-800">{displayedSummary.projectDetails.status}</p>
+                              </div>
+                              <div>
+                                <p className="text-xs text-gray-500">Start Date</p>
+                                <p className="text-sm font-semibold text-gray-800">
+                                  {displayedSummary.projectDetails.startDate
+                                    ? new Date(displayedSummary.projectDetails.startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+                                    : 'Not Started'}
+                                </p>
+                              </div>
+                              <div>
+                                <p className="text-xs text-gray-500">Progress</p>
+                                <div className="flex items-center space-x-2">
+                                  <p className="text-sm font-semibold text-gray-800">{displayedSummary.projectDetails.progressPercentage}%</p>
+                                  <div className="w-16 bg-gray-200 rounded-full h-1.5 dark:bg-gray-700">
+                                    <div className="bg-green-600 h-1.5 rounded-full" style={{ width: `${displayedSummary.projectDetails.progressPercentage}%` }}></div>
+                                  </div>
+                                </div>
+                              </div>
                             </div>
-                            <div className="bg-green-50 p-4 rounded-md">
-                              <p className="text-sm text-gray-500">Next Payment Amount</p>
-                              <p className="text-2xl font-bold text-green-800">
-                                LKR {investmentSummary?.nextPaymentAmount?.toLocaleString('en-US', { minimumFractionDigits: 2 })}
-                              </p>
-                            </div>
-                          </>
+                          </div>
                         )}
-                      </div>
+                      </>
                     )}
                   </div>
 
@@ -195,11 +287,11 @@ const CustomerDashboard = () => {
                       </div>
                     ) : summaryError ? (
                       <div className="text-sm text-red-600 bg-red-50 p-3 rounded-md">{summaryError}</div>
-                    ) : !investmentSummary?.recentActivity || investmentSummary.recentActivity.length === 0 ? (
+                    ) : !displayedSummary?.recentActivity || displayedSummary.recentActivity.length === 0 ? (
                       <div className="text-sm text-gray-500 text-center py-4">No recent payment activity.</div>
                     ) : (
                       <div className="space-y-4">
-                        {investmentSummary.recentActivity.map(act => (
+                        {displayedSummary.recentActivity.map(act => (
                           <div key={act.payment_id} className="border-b border-gray-100 pb-3">
                             <div className="flex justify-between items-start">
                               <div>
@@ -437,26 +529,6 @@ const CustomerDashboard = () => {
                   <a href="/customer/new-investment" className="block w-full text-center px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition duration-300">New Investment</a>
                   <a href="/customer/contact-advisor" className="block w-full text-center px-4 py-2 border border-green-600 text-green-600 rounded-md hover:bg-green-50 transition duration-300">Contact Advisor</a>
                   <a href="/customer/documents/upload" className="block w-full text-center px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition duration-300">Upload Document</a>
-                </div>
-              </div>
-
-              {/* Upcoming Events */}
-              <div className="bg-white p-6 rounded-lg shadow-md">
-                <h2 className="text-lg font-bold text-green-800 mb-4">Upcoming Events</h2>
-                <div className="space-y-4">
-                  <div className="border-l-4 border-green-500 pl-3">
-                    <p className="font-medium">Quarterly Dividend Payment</p>
-                    <p className="text-sm text-gray-500">July 15, 2025</p>
-                  </div>
-                  <div className="border-l-4 border-yellow-500 pl-3">
-                    <p className="font-medium">Plantation Visit Opportunity</p>
-                    <p className="text-sm text-gray-500">May 20, 2025</p>
-                    <a href="#" className="text-xs text-green-700 hover:underline">Register Interest</a>
-                  </div>
-                  <div className="border-l-4 border-blue-500 pl-3">
-                    <p className="font-medium">Annual Investor Meeting</p>
-                    <p className="text-sm text-gray-500">August 10, 2025</p>
-                  </div>
                 </div>
               </div>
 

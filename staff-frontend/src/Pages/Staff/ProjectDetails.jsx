@@ -52,6 +52,8 @@ const ProjectDetails = () => {
   const [paymentsError, setPaymentsError] = useState(null);
   const [installmentSearchTerm, setInstallmentSearchTerm] = useState('');
   const [selectedInstallment, setSelectedInstallment] = useState('');
+  const [editingPaymentId, setEditingPaymentId] = useState(null);
+  const [editingPaymentDate, setEditingPaymentDate] = useState('');
 
   const handleEditProgressClick = (progress) => {
     setEditProgressId(progress.progress_id);
@@ -253,6 +255,29 @@ const ProjectDetails = () => {
         console.error('Error deleting payment record:', err);
         alert(err.response?.data?.message || 'Error deleting payment record');
       }
+    }
+  };
+
+  const handleUpdatePaymentDate = async (paymentId) => {
+    if (!editingPaymentDate) {
+      alert('Please select a payment date');
+      return;
+    }
+    try {
+      const authAxios = getAuthAxios();
+      const response = await authAxios.put(`/api/project/${projectId}/payments/${paymentId}`, {
+        payment_date: editingPaymentDate
+      });
+      if (response.data.success) {
+        fetchPaymentDetails();
+        setEditingPaymentId(null);
+        alert('Payment date updated successfully.');
+      } else {
+        alert(response.data.message || 'Failed to update payment date');
+      }
+    } catch (err) {
+      console.error('Error updating payment date:', err);
+      alert(err.response?.data?.message || 'Error updating payment date');
     }
   };
 
@@ -820,28 +845,75 @@ const ProjectDetails = () => {
                                   LKR {parseFloat(paymentsData.installment_amount).toLocaleString('en-US', { minimumFractionDigits: 2 })}
                                 </span>
                                 {isPaid ? (
-                                  <div className="flex items-center space-x-2">
-                                    <span className="px-2 py-0.5 inline-flex items-center text-[10px] font-bold rounded bg-green-100 text-green-800 border border-green-200">
-                                      PAID
+                                    <div className="flex items-center space-x-2">
+                                      <span className="px-2 py-0.5 inline-flex items-center text-[10px] font-bold rounded bg-green-100 text-green-800 border border-green-200">
+                                        PAID
+                                      </span>
+                                      
+                                      {editingPaymentId === paymentRecord?.payment_id ? (
+                                        <div className="flex items-center space-x-1">
+                                          <input
+                                            type="date"
+                                            value={editingPaymentDate}
+                                            onChange={(e) => setEditingPaymentDate(e.target.value)}
+                                            className="border border-gray-300 rounded px-1 py-0.5 text-[9px] focus:outline-none focus:ring-1 focus:ring-green-500 bg-white"
+                                          />
+                                          <button
+                                            type="button"
+                                            onClick={() => handleUpdatePaymentDate(paymentRecord.payment_id)}
+                                            className="text-green-600 hover:text-green-800 font-semibold text-[10px] px-1"
+                                          >
+                                            Save
+                                          </button>
+                                          <button
+                                            type="button"
+                                            onClick={() => setEditingPaymentId(null)}
+                                            className="text-gray-500 hover:text-gray-700 text-[10px] px-1"
+                                          >
+                                            Cancel
+                                          </button>
+                                        </div>
+                                      ) : (
+                                        <div className="flex items-center space-x-1 text-[10px]">
+                                          <span className="text-gray-500">
+                                            Paid: {paymentRecord?.payment_date ? new Date(paymentRecord.payment_date).toLocaleDateString() : 'N/A'}
+                                          </span>
+                                          {getUserRole() === 'Admin' && paymentRecord && (
+                                            <button
+                                              type="button"
+                                              onClick={() => {
+                                                setEditingPaymentId(paymentRecord.payment_id);
+                                                setEditingPaymentDate(paymentRecord.payment_date ? paymentRecord.payment_date.split('T')[0] : '');
+                                              }}
+                                              className="text-blue-600 hover:text-blue-800"
+                                              title="Edit payment date"
+                                            >
+                                              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                                              </svg>
+                                            </button>
+                                          )}
+                                        </div>
+                                      )}
+
+                                      {num === Math.max(...paymentsData.paid_installment_numbers) && editingPaymentId !== paymentRecord?.payment_id && (
+                                        <button
+                                          type="button"
+                                          onClick={() => handleUnmarkPayment(paymentRecord.payment_id, `Installment ${num}`)}
+                                          className="text-red-500 hover:text-red-700"
+                                          title="Unmark paid"
+                                        >
+                                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                          </svg>
+                                        </button>
+                                      )}
+                                    </div>
+                                  ) : (
+                                    <span className="px-2 py-0.5 inline-flex items-center text-[10px] font-bold rounded bg-gray-100 text-gray-500 border border-gray-200">
+                                      PENDING
                                     </span>
-                                    {num === Math.max(...paymentsData.paid_installment_numbers) && (
-                                      <button
-                                        type="button"
-                                        onClick={() => handleUnmarkPayment(paymentRecord.payment_id, `Installment ${num}`)}
-                                        className="text-red-500 hover:text-red-700"
-                                        title="Unmark paid"
-                                      >
-                                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                        </svg>
-                                      </button>
-                                    )}
-                                  </div>
-                                ) : (
-                                  <span className="px-2 py-0.5 inline-flex items-center text-[10px] font-bold rounded bg-gray-100 text-gray-500 border border-gray-200">
-                                    PENDING
-                                  </span>
-                                )}
+                                  )}
                               </div>
                             </div>
                           );

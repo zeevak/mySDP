@@ -34,5 +34,9 @@ export const authService = {
     
     getCurrentUser: async () => {
         return api.get("/customer/me");
+    },
+    
+    getInvestmentSummary: async () => {
+        return api.get("/customer/investment-summary");
     }
 };
