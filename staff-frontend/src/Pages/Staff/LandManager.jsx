@@ -3,9 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import StaffHeader from '../../Components/Staff_Header';
 import StaffFooter from '../../Components/Staff_Footer';
+import { getUserRole } from '../../utils/authUtils';
 
 const LandManager = () => {
   const navigate = useNavigate();
+  const userRole = getUserRole();
   const [lands, setLands] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -14,6 +16,8 @@ const LandManager = () => {
   const [landToDelete, setLandToDelete] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filteredLands, setFilteredLands] = useState([]);
+  const [sortField, setSortField] = useState(null);
+  const [sortDirection, setSortDirection] = useState(null); // 'asc' or 'desc'
 
   // Fetch all lands
   useEffect(() => {
@@ -39,6 +43,54 @@ const LandManager = () => {
       setFilteredLands(filtered);
     }
   }, [searchTerm, lands]);
+
+  // Handle sorting toggles
+  const handleSort = (field) => {
+    if (sortField === field) {
+      if (sortDirection === 'asc') {
+        setSortDirection('desc');
+      } else if (sortDirection === 'desc') {
+        setSortField(null);
+        setSortDirection(null);
+      }
+    } else {
+      setSortField(field);
+      setSortDirection('asc');
+    }
+  };
+
+  // Sort filtered lands
+  const sortedLands = React.useMemo(() => {
+    if (!sortField || !sortDirection) return filteredLands;
+
+    return [...filteredLands].sort((a, b) => {
+      let valA, valB;
+
+      switch (sortField) {
+        case 'customer_land_id':
+          valA = a.customer_land_id || '';
+          valB = b.customer_land_id || '';
+          return sortDirection === 'asc'
+            ? valA.localeCompare(valB, undefined, { numeric: true, sensitivity: 'base' })
+            : valB.localeCompare(valA, undefined, { numeric: true, sensitivity: 'base' });
+        case 'customer_id':
+          valA = a.customer_id || '';
+          valB = b.customer_id || '';
+          return sortDirection === 'asc'
+            ? valA.localeCompare(valB, undefined, { numeric: true, sensitivity: 'base' })
+            : valB.localeCompare(valA, undefined, { numeric: true, sensitivity: 'base' });
+        case 'land_size':
+          valA = parseFloat(a.land_size);
+          valB = parseFloat(b.land_size);
+          if (isNaN(valA) && isNaN(valB)) return 0;
+          if (isNaN(valA)) return 1;
+          if (isNaN(valB)) return -1;
+          return sortDirection === 'asc' ? valA - valB : valB - valA;
+        default:
+          return 0;
+      }
+    });
+  }, [filteredLands, sortField, sortDirection]);
 
   // Fetch all lands
   const fetchLands = async () => {
@@ -187,15 +239,60 @@ const LandManager = () => {
                 <table className="min-w-full divide-y divide-gray-200">
                   <thead className="bg-gray-50">
                     <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Land ID</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Customer ID</th>
+                      <th 
+                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer select-none hover:bg-gray-100 transition-colors duration-150"
+                        onClick={() => handleSort('customer_land_id')}
+                      >
+                        <div className="flex items-center space-x-1">
+                          <span>Land ID</span>
+                          <span className="flex flex-col">
+                            <svg className={`h-2 w-2 ${sortField === 'customer_land_id' && sortDirection === 'asc' ? 'text-green-600' : 'text-gray-400'}`} fill="currentColor" viewBox="0 0 24 24">
+                              <path d="M12 4l-8 8h16z" />
+                            </svg>
+                            <svg className={`h-2 w-2 ${sortField === 'customer_land_id' && sortDirection === 'desc' ? 'text-green-600' : 'text-gray-400'}`} fill="currentColor" viewBox="0 0 24 24">
+                              <path d="M12 20l-8-8h16z" />
+                            </svg>
+                          </span>
+                        </div>
+                      </th>
+                      <th 
+                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer select-none hover:bg-gray-100 transition-colors duration-150"
+                        onClick={() => handleSort('customer_id')}
+                      >
+                        <div className="flex items-center space-x-1">
+                          <span>Customer ID</span>
+                          <span className="flex flex-col">
+                            <svg className={`h-2 w-2 ${sortField === 'customer_id' && sortDirection === 'asc' ? 'text-green-600' : 'text-gray-400'}`} fill="currentColor" viewBox="0 0 24 24">
+                              <path d="M12 4l-8 8h16z" />
+                            </svg>
+                            <svg className={`h-2 w-2 ${sortField === 'customer_id' && sortDirection === 'desc' ? 'text-green-600' : 'text-gray-400'}`} fill="currentColor" viewBox="0 0 24 24">
+                              <path d="M12 20l-8-8h16z" />
+                            </svg>
+                          </span>
+                        </div>
+                      </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Location</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Size (perch)</th>
+                      <th 
+                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer select-none hover:bg-gray-100 transition-colors duration-150"
+                        onClick={() => handleSort('land_size')}
+                      >
+                        <div className="flex items-center space-x-1">
+                          <span>Size (perch)</span>
+                          <span className="flex flex-col">
+                            <svg className={`h-2 w-2 ${sortField === 'land_size' && sortDirection === 'asc' ? 'text-green-600' : 'text-gray-400'}`} fill="currentColor" viewBox="0 0 24 24">
+                              <path d="M12 4l-8 8h16z" />
+                            </svg>
+                            <svg className={`h-2 w-2 ${sortField === 'land_size' && sortDirection === 'desc' ? 'text-green-600' : 'text-gray-400'}`} fill="currentColor" viewBox="0 0 24 24">
+                              <path d="M12 20l-8-8h16z" />
+                            </svg>
+                          </span>
+                        </div>
+                      </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
-                    {filteredLands.map((land) => (
+                    {sortedLands.map((land) => (
                       <tr key={land.customer_land_id} className="hover:bg-gray-50">
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="text-sm text-gray-900">{land.customer_land_id}</div>
@@ -224,12 +321,14 @@ const LandManager = () => {
                           >
                             Edit
                           </button>
-                          <button
-                            onClick={() => handleDelete(land)}
-                            className="text-red-600 hover:text-red-900"
-                          >
-                            Delete
-                          </button>
+                          {userRole === 'Admin' && (
+                            <button
+                              onClick={() => handleDelete(land)}
+                              className="text-red-600 hover:text-red-900"
+                            >
+                              Delete
+                            </button>
+                          )}
                         </td>
                       </tr>
                     ))}

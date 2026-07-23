@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getAuthAxios } from '../../utils/authUtils';
+import { getAuthAxios, getUserRole } from '../../utils/authUtils';
 import Staff_Header from '../../Components/Staff_Header';
 import Staff_Footer from '../../Components/Staff_Footer';
 
@@ -75,8 +75,28 @@ const ProjectsPage = () => {
     }
   };
 
+  const userRole = getUserRole();
+
   const handleProjectClick = (projectId) => {
     navigate(`/staff/projects/${projectId}`);
+  };
+
+  const handleDeleteProject = async (projectId) => {
+    if (window.confirm(`Are you sure you want to delete project #${projectId}? This will also delete all progress logs. This action cannot be undone.`)) {
+      try {
+        const authAxios = getAuthAxios();
+        const response = await authAxios.delete(`/api/project/${projectId}`);
+        if (response.data.success) {
+          setProjects(projects.filter(p => p.project_id !== projectId));
+          alert('Project deleted successfully');
+        } else {
+          alert('Failed to delete project');
+        }
+      } catch (err) {
+        console.error('Error deleting project:', err);
+        alert(err.response?.data?.message || 'Error deleting project');
+      }
+    }
   };
 
   const getStatusColor = (status) => {
@@ -170,7 +190,9 @@ const ProjectsPage = () => {
                           #{project.project_id}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">
-                          {project.proposal?.customer?.full_name || 'N/A'}
+                          {project.proposal?.customer?.f_name || project.proposal?.customer?.l_name ? 
+                            `${project.proposal.customer.f_name || ''} ${project.proposal.customer.l_name || ''}`.trim() : 
+                            project.proposal?.customer?.full_name || 'N/A'}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                           {project.proposal?.customer_land?.city || 'N/A'}
@@ -200,7 +222,7 @@ const ProjectsPage = () => {
                             {project.status}
                           </span>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium flex items-center space-x-2">
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
@@ -210,6 +232,20 @@ const ProjectsPage = () => {
                           >
                             View
                           </button>
+                          {userRole === 'Admin' && (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDeleteProject(project.project_id);
+                              }}
+                              className="text-red-600 hover:text-red-950 bg-red-50 hover:bg-red-100 p-1 rounded transition duration-150"
+                              title="Delete Project"
+                            >
+                              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                              </svg>
+                            </button>
+                          )}
                         </td>
                       </tr>
                     );

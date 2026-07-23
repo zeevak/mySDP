@@ -2,19 +2,20 @@ import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import StaffHeader from '../../Components/Staff_Header';
+import { getUserRole } from '../../utils/authUtils';
 import StaffFooter from '../../Components/Staff_Footer';
 
 const CustomerManager = () => {
   const navigate = useNavigate();
+  const userRole = getUserRole();
   const [customers, setCustomers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCustomer, setSelectedCustomer] = useState(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [customerToDelete, setCustomerToDelete] = useState(null);
-  const [customerLands, setCustomerLands] = useState([]);
-  const [landsLoading, setLandsLoading] = useState(false);
+  const [sortField, setSortField] = useState(null);
+  const [sortDirection, setSortDirection] = useState(null); // 'asc' or 'desc'
 
   // Fetch customers
   useEffect(() => {
@@ -44,34 +45,7 @@ const CustomerManager = () => {
     fetchCustomers();
   }, []);
 
-  // Handle customer selection for details view
-  const handleViewDetails = (customer) => {
-    setSelectedCustomer(customer);
-    fetchCustomerLands(customer.customer_id);
-  };
 
-  // Fetch customer lands
-  const fetchCustomerLands = async (customerId) => {
-    try {
-      setLandsLoading(true);
-      const token = localStorage.getItem('token');
-
-      const response = await axios.get(`http://localhost:5001/api/staff/customers/${customerId}/lands`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-
-      if (response.data && response.data.success) {
-        setCustomerLands(response.data.data);
-      } else {
-        console.error('Failed to fetch customer lands');
-      }
-
-      setLandsLoading(false);
-    } catch (err) {
-      console.error('Error fetching customer lands:', err);
-      setLandsLoading(false);
-    }
-  };
 
   // Handle customer edit
   const handleEdit = (customerId) => {
@@ -102,10 +76,7 @@ const CustomerManager = () => {
       setShowDeleteModal(false);
       setCustomerToDelete(null);
 
-      // If the deleted customer was selected, clear selection
-      if (selectedCustomer && selectedCustomer.customer_id === customerToDelete.customer_id) {
-        setSelectedCustomer(null);
-      }
+
     } catch (err) {
       console.error('Error deleting customer:', err);
       setError('Failed to delete customer. Please try again.');
@@ -119,6 +90,57 @@ const CustomerManager = () => {
     customer.phone_no_1?.includes(searchTerm) ||
     customer.nic_number?.includes(searchTerm)
   );
+
+  // Handle sorting toggles
+  const handleSort = (field) => {
+    if (sortField === field) {
+      if (sortDirection === 'asc') {
+        setSortDirection('desc');
+      } else if (sortDirection === 'desc') {
+        setSortField(null);
+        setSortDirection(null);
+      }
+    } else {
+      setSortField(field);
+      setSortDirection('asc');
+    }
+  };
+
+  // Sort filtered customers
+  const sortedCustomers = React.useMemo(() => {
+    if (!sortField || !sortDirection) return filteredCustomers;
+
+    return [...filteredCustomers].sort((a, b) => {
+      let valA, valB;
+
+      switch (sortField) {
+        case 'customer_id':
+          valA = a.customer_id || '';
+          valB = b.customer_id || '';
+          return sortDirection === 'asc'
+            ? valA.localeCompare(valB, undefined, { numeric: true, sensitivity: 'base' })
+            : valB.localeCompare(valA, undefined, { numeric: true, sensitivity: 'base' });
+        case 'name':
+          valA = (a.f_name || a.l_name ? `${a.f_name || ''} ${a.l_name || ''}`.trim() : a.full_name || '').toLowerCase();
+          valB = (b.f_name || b.l_name ? `${b.f_name || ''} ${b.l_name || ''}`.trim() : b.full_name || '').toLowerCase();
+          break;
+        case 'email':
+          valA = (a.email || '').toLowerCase();
+          valB = (b.email || '').toLowerCase();
+          break;
+        case 'registered':
+          valA = a.created_at ? new Date(a.created_at).getTime() : 0;
+          valB = b.created_at ? new Date(b.created_at).getTime() : 0;
+          return sortDirection === 'asc' ? valA - valB : valB - valA;
+        default:
+          return 0;
+      }
+
+      if (valA < valB) return sortDirection === 'asc' ? -1 : 1;
+      if (valA > valB) return sortDirection === 'asc' ? 1 : -1;
+      return 0;
+    });
+  }, [filteredCustomers, sortField, sortDirection]);
 
   // Format date for display
   const formatDate = (dateString) => {
@@ -179,23 +201,96 @@ const CustomerManager = () => {
                 <table className="min-w-full divide-y divide-gray-200">
                   <thead className="bg-gray-50">
                     <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+                      <th 
+                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer select-none hover:bg-gray-100 transition-colors duration-150"
+                        onClick={() => handleSort('customer_id')}
+                      >
+                        <div className="flex items-center space-x-1">
+                          <span>Customer ID</span>
+                          <span className="flex flex-col">
+                            <svg className={`h-2 w-2 ${sortField === 'customer_id' && sortDirection === 'asc' ? 'text-green-600' : 'text-gray-400'}`} fill="currentColor" viewBox="0 0 24 24">
+                              <path d="M12 4l-8 8h16z" />
+                            </svg>
+                            <svg className={`h-2 w-2 ${sortField === 'customer_id' && sortDirection === 'desc' ? 'text-green-600' : 'text-gray-400'}`} fill="currentColor" viewBox="0 0 24 24">
+                              <path d="M12 20l-8-8h16z" />
+                            </svg>
+                          </span>
+                        </div>
+                      </th>
+                      <th 
+                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer select-none hover:bg-gray-100 transition-colors duration-150"
+                        onClick={() => handleSort('name')}
+                      >
+                        <div className="flex items-center space-x-1">
+                          <span>Name</span>
+                          <span className="flex flex-col">
+                            <svg className={`h-2 w-2 ${sortField === 'name' && sortDirection === 'asc' ? 'text-green-600' : 'text-gray-400'}`} fill="currentColor" viewBox="0 0 24 24">
+                              <path d="M12 4l-8 8h16z" />
+                            </svg>
+                            <svg className={`h-2 w-2 ${sortField === 'name' && sortDirection === 'desc' ? 'text-green-600' : 'text-gray-400'}`} fill="currentColor" viewBox="0 0 24 24">
+                              <path d="M12 20l-8-8h16z" />
+                            </svg>
+                          </span>
+                        </div>
+                      </th>
+                      <th 
+                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer select-none hover:bg-gray-100 transition-colors duration-150"
+                        onClick={() => handleSort('email')}
+                      >
+                        <div className="flex items-center space-x-1">
+                          <span>Email</span>
+                          <span className="flex flex-col">
+                            <svg className={`h-2 w-2 ${sortField === 'email' && sortDirection === 'asc' ? 'text-green-600' : 'text-gray-400'}`} fill="currentColor" viewBox="0 0 24 24">
+                              <path d="M12 4l-8 8h16z" />
+                            </svg>
+                            <svg className={`h-2 w-2 ${sortField === 'email' && sortDirection === 'desc' ? 'text-green-600' : 'text-gray-400'}`} fill="currentColor" viewBox="0 0 24 24">
+                              <path d="M12 20l-8-8h16z" />
+                            </svg>
+                          </span>
+                        </div>
+                      </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Phone</th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">NIC</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Registered</th>
+                      <th 
+                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer select-none hover:bg-gray-100 transition-colors duration-150"
+                        onClick={() => handleSort('registered')}
+                      >
+                        <div className="flex items-center space-x-2">
+                          <span>Registered</span>
+                          <div className="flex items-center space-x-1">
+                            <span 
+                              title="Oldest to Newest" 
+                              className={`text-xs ${sortField === 'registered' && sortDirection === 'asc' ? 'text-green-600 font-extrabold' : 'text-gray-400'}`}
+                            >
+                              ↑
+                            </span>
+                            <span 
+                              title="Newest to Oldest" 
+                              className={`text-xs ${sortField === 'registered' && sortDirection === 'desc' ? 'text-green-600 font-extrabold' : 'text-gray-400'}`}
+                            >
+                              ↓
+                            </span>
+                          </div>
+                        </div>
+                      </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
-                    {filteredCustomers.map((customer) => (
+                    {sortedCustomers.map((customer) => (
                       <tr
                         key={customer.customer_id}
-                        className={`hover:bg-gray-50 ${selectedCustomer?.customer_id === customer.customer_id ? 'bg-green-50' : ''}`}
+                        className="hover:bg-gray-50 cursor-pointer transition-colors duration-150"
+                        onClick={() => navigate(`/staff/customers/${customer.customer_id}`)}
                       >
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">
+                          {customer.customer_id}
+                        </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="text-sm font-medium text-gray-900">
-                            {customer.title} {customer.full_name}
+                            {customer.f_name || customer.l_name ? 
+                              `${customer.f_name || ''} ${customer.l_name || ''}`.trim() : 
+                              customer.full_name}
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
@@ -210,25 +305,21 @@ const CustomerManager = () => {
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="text-sm text-gray-500">{formatDate(customer.created_at)}</div>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                          <button
-                            onClick={() => handleViewDetails(customer)}
-                            className="text-blue-600 hover:text-blue-900 mr-3"
-                          >
-                            View
-                          </button>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium" onClick={(e) => e.stopPropagation()}>
                           <button
                             onClick={() => handleEdit(customer.customer_id)}
                             className="text-green-600 hover:text-green-900 mr-3"
                           >
                             Edit
                           </button>
-                          <button
-                            onClick={() => handleDeleteConfirmation(customer)}
-                            className="text-red-600 hover:text-red-900"
-                          >
-                            Delete
-                          </button>
+                          {userRole === 'Admin' && (
+                            <button
+                              onClick={() => handleDeleteConfirmation(customer)}
+                              className="text-red-600 hover:text-red-900"
+                            >
+                              Delete
+                            </button>
+                          )}
                         </td>
                       </tr>
                     ))}
@@ -238,178 +329,7 @@ const CustomerManager = () => {
             )}
           </div>
 
-          {/* Customer Details Panel */}
-          {selectedCustomer && (
-            <div className="bg-white shadow-md rounded-lg overflow-hidden mb-6">
-              <div className="p-4 bg-gray-50 border-b flex justify-between items-center">
-                <h2 className="text-lg font-semibold text-gray-800">Customer Details</h2>
-                <div className="flex space-x-2">
-                  <button
-                    onClick={() => navigate(`/staff/customers/${selectedCustomer.customer_id}/add-land`)}
-                    className="bg-blue-600 text-white px-3 py-1 rounded-md hover:bg-blue-700 transition duration-200"
-                  >
-                    Add New Land
-                  </button>
-                  <button
-                    onClick={() => handleEdit(selectedCustomer.customer_id)}
-                    className="bg-green-600 text-white px-3 py-1 rounded-md hover:bg-green-700 transition duration-200"
-                  >
-                    Edit
-                  </button>
-                  <button
-                    onClick={() => setSelectedCustomer(null)}
-                    className="bg-gray-200 text-gray-700 px-3 py-1 rounded-md hover:bg-gray-300 transition duration-200"
-                  >
-                    Close
-                  </button>
-                </div>
-              </div>
 
-              <div className="p-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <h3 className="text-md font-semibold text-gray-700 mb-4">Personal Information</h3>
-                    <div className="space-y-3">
-                      <div>
-                        <span className="text-sm font-medium text-gray-500">Full Name:</span>
-                        <p className="text-gray-800">{selectedCustomer.title} {selectedCustomer.full_name}</p>
-                      </div>
-                      <div>
-                        <span className="text-sm font-medium text-gray-500">Name with Initials:</span>
-                        <p className="text-gray-800">{selectedCustomer.name_with_ini || 'N/A'}</p>
-                      </div>
-                      <div>
-                        <span className="text-sm font-medium text-gray-500">First Name:</span>
-                        <p className="text-gray-800">{selectedCustomer.f_name || 'N/A'}</p>
-                      </div>
-                      <div>
-                        <span className="text-sm font-medium text-gray-500">Last Name:</span>
-                        <p className="text-gray-800">{selectedCustomer.l_name || 'N/A'}</p>
-                      </div>
-                      <div>
-                        <span className="text-sm font-medium text-gray-500">NIC Number:</span>
-                        <p className="text-gray-800">{selectedCustomer.nic_number || 'N/A'}</p>
-                      </div>
-                      <div>
-                        <span className="text-sm font-medium text-gray-500">Date of Birth:</span>
-                        <p className="text-gray-800">{formatDate(selectedCustomer.date_of_birth)}</p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div>
-                    <h3 className="text-md font-semibold text-gray-700 mb-4">Contact Information</h3>
-                    <div className="space-y-3">
-                      <div>
-                        <span className="text-sm font-medium text-gray-500">Email:</span>
-                        <p className="text-gray-800">{selectedCustomer.email}</p>
-                      </div>
-                      <div>
-                        <span className="text-sm font-medium text-gray-500">Phone Number 1:</span>
-                        <p className="text-gray-800">{selectedCustomer.phone_no_1 || 'N/A'}</p>
-                      </div>
-                      <div>
-                        <span className="text-sm font-medium text-gray-500">Phone Number 2:</span>
-                        <p className="text-gray-800">{selectedCustomer.phone_no_2 || 'N/A'}</p>
-                      </div>
-                      <div>
-                        <span className="text-sm font-medium text-gray-500">Address:</span>
-                        <p className="text-gray-800">
-                          {[
-                            selectedCustomer.add_line_1,
-                            selectedCustomer.add_line_2,
-                            selectedCustomer.add_line_3
-                          ].filter(Boolean).join(', ') || 'N/A'}
-                        </p>
-                      </div>
-                      <div>
-                        <span className="text-sm font-medium text-gray-500">City:</span>
-                        <p className="text-gray-800">{selectedCustomer.city || 'N/A'}</p>
-                      </div>
-                      <div>
-                        <span className="text-sm font-medium text-gray-500">District:</span>
-                        <p className="text-gray-800">{selectedCustomer.district || 'N/A'}</p>
-                      </div>
-                      <div>
-                        <span className="text-sm font-medium text-gray-500">Province:</span>
-                        <p className="text-gray-800">{selectedCustomer.province || 'N/A'}</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="mt-6">
-                  <h3 className="text-md font-semibold text-gray-700 mb-4">Account Information</h3>
-                  <div className="space-y-3">
-                    <div>
-                      <span className="text-sm font-medium text-gray-500">Customer ID:</span>
-                      <p className="text-gray-800">{selectedCustomer.customer_id}</p>
-                    </div>
-                    <div>
-                      <span className="text-sm font-medium text-gray-500">Registration Date:</span>
-                      <p className="text-gray-800">{formatDate(selectedCustomer.created_at)}</p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Customer Lands Section */}
-                <div className="mt-6">
-                  <div className="flex justify-between items-center mb-4">
-                    <h3 className="text-md font-semibold text-gray-700">Customer Lands</h3>
-                    <button
-                      onClick={() => navigate(`/staff/customers/${selectedCustomer.customer_id}/add-land`)}
-                      className="text-sm bg-blue-600 text-white px-3 py-1 rounded-md hover:bg-blue-700 transition duration-200"
-                    >
-                      Add New Land
-                    </button>
-                  </div>
-
-                  {landsLoading ? (
-                    <div className="flex justify-center items-center h-24">
-                      <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-green-500"></div>
-                    </div>
-                  ) : customerLands.length === 0 ? (
-                    <div className="bg-gray-50 p-4 rounded-md text-gray-500 text-center">
-                      No lands registered for this customer.
-                    </div>
-                  ) : (
-                    <div className="overflow-x-auto border rounded-md">
-                      <table className="min-w-full divide-y divide-gray-200">
-                        <thead className="bg-gray-50">
-                          <tr>
-                            <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">ID</th>
-                            <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Location</th>
-                            <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Climate Zone</th>
-                            <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Size (perches)</th>
-                            <th className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase">Soil Type</th>
-                          </tr>
-                        </thead>
-                        <tbody className="bg-white divide-y divide-gray-200">
-                          {customerLands.map((land) => (
-                            <tr key={land.customer_land_id} className="hover:bg-gray-50">
-                              <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-500">{land.customer_land_id}</td>
-                              <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-500">
-                                {[land.city, land.district, land.province].filter(Boolean).join(', ')}
-                              </td>
-                              <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-500">
-                                {land.climate_zone || 'N/A'}
-                              </td>
-                              <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-500">
-                                {land.land_size}
-                              </td>
-                              <td className="px-4 py-2 whitespace-nowrap text-sm text-gray-500">
-                                {land.soil_type || 'N/A'}
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          )}
         </div>
       </main>
 

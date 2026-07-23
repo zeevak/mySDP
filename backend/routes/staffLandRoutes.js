@@ -11,6 +11,6 @@ router.use(authorize(['Staff', 'Admin']));
 router.get('/', landManagementController.getAllLands);
 router.get('/:id', landManagementController.getLandById);
 router.put('/:id', landManagementController.updateLand);
-router.delete('/:id', landManagementController.deleteLand);
+router.delete('/:id', authorize(['Admin']), landManagementController.deleteLand);
 
 module.exports = router;

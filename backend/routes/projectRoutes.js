@@ -10,6 +10,9 @@ router.get("/approved", protect, projectController.getApprovedProjects);
 // Get project details with progress history
 router.get("/:projectId", protect, projectController.getProjectDetails);
 
+// Delete project
+router.delete("/:projectId", protect, authorize(["Admin"]), projectController.deleteProject);
+
 // Update project status
 router.put("/:projectId/status", protect, projectController.updateProjectStatus);
 

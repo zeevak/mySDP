@@ -7,12 +7,21 @@ require("dotenv").config();
 
 console.log("Server starting...");
 
+const path = require("path");
+const CustomerDocument = require("./models/CustomerDocument");
+
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server, { cors: { origin: "http://localhost:5173" } });
 
 app.use(cors());
 app.use(express.json());
+
+// Serve static uploads
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+
+// Sync CustomerDocument table if needed
+CustomerDocument.sync().catch(err => console.error("CustomerDocument sync error:", err));
 
 app.use("/api/customer", require("./routes/customerRoutes"));
 app.use("/api/staff", require("./routes/staffRoutes"));

@@ -48,3 +48,6 @@ backend/.env
 # Temporary files
 *.tmp
 *.bak
+# Uploaded files
+backend/uploads/*
+!backend/uploads/.gitkeep

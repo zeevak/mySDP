@@ -39,6 +39,6 @@ router.patch('/:id/status', proposalController.updateProposalStatus);
 router.patch('/:id/land', proposalController.updateProposalLand);
 
 // Delete proposal
-router.delete('/:id', proposalController.deleteProposal);
+router.delete('/:id', authorize(['Admin']), proposalController.deleteProposal);
 
 module.exports = router;

@@ -17,10 +17,15 @@ router.use(authorize(['Staff', 'Admin']));
 router.get('/', customerManagementController.getAllCustomers);
 router.get('/:id', customerManagementController.getCustomerById);
 router.put('/:id', customerManagementController.updateCustomer);
-router.delete('/:id', customerManagementController.deleteCustomer);
+router.delete('/:id', authorize(['Admin']), customerManagementController.deleteCustomer);
+
+const customerAuthController = require('../controllers/customerAuthController');
 
 // Customer land management routes
 router.get('/:customerId/lands', customerManagementController.getCustomerLands);
 router.post('/:customerId/lands', customerManagementController.addCustomerLand);
+
+// Customer document management routes for staff
+router.get('/:customerId/documents', customerAuthController.getStaffCustomerDocuments);
 
 module.exports = router;

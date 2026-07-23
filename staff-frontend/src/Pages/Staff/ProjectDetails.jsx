@@ -515,6 +515,18 @@ const ProjectDetails = () => {
                 </p>
               </div>
 
+              {/* Total Project Value - Highlighted */}
+              <div className="p-4 bg-gradient-to-r from-emerald-50 to-green-50 border border-emerald-200 rounded-xl shadow-sm my-2">
+                <p className="text-xs font-bold uppercase tracking-wider text-emerald-800 mb-1">Total Project Value</p>
+                <p className="text-2xl font-extrabold text-emerald-700">
+                  {project.proposal?.project_value !== undefined && project.proposal?.project_value !== null
+                    ? `LKR ${parseFloat(project.proposal.project_value).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+                    : (paymentsData?.project_value !== undefined && paymentsData?.project_value !== null
+                        ? `LKR ${parseFloat(paymentsData.project_value).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+                        : 'N/A')}
+                </p>
+              </div>
+
               {project.start_date && (
                 <div>
                   <p className="text-sm text-gray-600">Start Date</p>

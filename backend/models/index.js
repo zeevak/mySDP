@@ -15,6 +15,7 @@ const Project = require('./Project');
 const Progress = require('./progress');
 const ProjectProgress = require('./ProjectProgress');
 const PlantShipment = require('./PlantShipment');
+const CustomerDocument = require('./CustomerDocument');
 
 // Initialize associations
 const models = {
@@ -33,7 +34,8 @@ const models = {
   Project,
   Progress,
   ProjectProgress,
-  PlantShipment
+  PlantShipment,
+  CustomerDocument
 };
 
 // Set up relationships between models

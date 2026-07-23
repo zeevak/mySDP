@@ -21,6 +21,7 @@ import EditProposal from './Pages/Staff/EditProposal';
 import ProjectsPage from './Pages/Staff/ProjectsPage';
 import ProjectDetails from './Pages/Staff/ProjectDetails';
 import DashboardRedirect from './Components/DashboardRedirect';
+import CustomerDetails from './Pages/Staff/CustomerDetails';
 
 // Protected route component
 const ProtectedRoute = ({ element, allowedRoles }) => {
@@ -56,6 +57,10 @@ function App() {
         <Route
           path="/staff/customers"
           element={<ProtectedRoute element={<CustomerManager />} allowedRoles={['Staff', 'Admin']} />}
+        />
+        <Route
+          path="/staff/customers/:customerId"
+          element={<ProtectedRoute element={<CustomerDetails />} allowedRoles={['Staff', 'Admin']} />}
         />
         <Route
           path="/staff/add-customer"

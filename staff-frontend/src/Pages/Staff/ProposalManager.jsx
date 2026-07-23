@@ -1,19 +1,34 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import StaffHeader from '../../Components/Staff_Header';
 import StaffFooter from '../../Components/Staff_Footer';
-import { getAuthAxios, isAuthenticated, logout } from '../../utils/authUtils';
+import { getAuthAxios, isAuthenticated, logout, getUserRole } from '../../utils/authUtils';
 
 const ProposalManager = () => {
   const navigate = useNavigate();
+  const userRole = getUserRole();
   const [proposals, setProposals] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
+  const [projectTypeFilter, setProjectTypeFilter] = useState('All');
+  const [sortField, setSortField] = useState(null);
+  const [sortDirection, setSortDirection] = useState(null); // 'asc' or 'desc'
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
+
+  // Reset to first page when search or filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, statusFilter, projectTypeFilter]);
+
+  // Extract unique project types dynamically
+  const projectTypes = useMemo(() => {
+    const types = proposals.map(p => p.project_type).filter(Boolean);
+    return ['All', ...new Set(types)];
+  }, [proposals]);
 
   // Fetch proposals
   useEffect(() => {
@@ -124,22 +139,93 @@ const ProposalManager = () => {
     }
   };
 
-  // Filter proposals based on search and status
+  // Filter proposals based on search, status and project type
   const filteredProposals = proposals.filter(proposal => {
     const matchesSearch = proposal.customer_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         proposal.customer_id?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         proposal.customer_land_id?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          proposal.proposal_id?.toString().includes(searchTerm) ||
                          proposal.project_type?.toLowerCase().includes(searchTerm.toLowerCase());
     
     const matchesStatus = statusFilter === 'All' || proposal.status === statusFilter;
+    const matchesProjectType = projectTypeFilter === 'All' || proposal.project_type === projectTypeFilter;
     
-    return matchesSearch && matchesStatus;
+    return matchesSearch && matchesStatus && matchesProjectType;
   });
+
+  // Handle sorting toggles
+  const handleSort = (field) => {
+    if (sortField === field) {
+      if (sortDirection === 'asc') {
+        setSortDirection('desc');
+      } else if (sortDirection === 'desc') {
+        setSortField(null);
+        setSortDirection(null);
+      }
+    } else {
+      setSortField(field);
+      setSortDirection('asc');
+    }
+  };
+
+  // Sort filtered proposals
+  const sortedProposals = useMemo(() => {
+    if (!sortField || !sortDirection) return filteredProposals;
+
+    return [...filteredProposals].sort((a, b) => {
+      let valA, valB;
+
+      switch (sortField) {
+        case 'proposal_id':
+          valA = a.proposal_id || '';
+          valB = b.proposal_id || '';
+          return sortDirection === 'asc'
+            ? valA.localeCompare(valB, undefined, { numeric: true, sensitivity: 'base' })
+            : valB.localeCompare(valA, undefined, { numeric: true, sensitivity: 'base' });
+        case 'customer_id':
+          valA = a.customer_id || '';
+          valB = b.customer_id || '';
+          return sortDirection === 'asc'
+            ? valA.localeCompare(valB, undefined, { numeric: true, sensitivity: 'base' })
+            : valB.localeCompare(valA, undefined, { numeric: true, sensitivity: 'base' });
+        case 'customer_land_id':
+          valA = a.customer_land_id || '';
+          valB = b.customer_land_id || '';
+          if (!valA && !valB) return 0;
+          if (!valA) return 1;
+          if (!valB) return -1;
+          return sortDirection === 'asc'
+            ? valA.localeCompare(valB, undefined, { numeric: true, sensitivity: 'base' })
+            : valB.localeCompare(valA, undefined, { numeric: true, sensitivity: 'base' });
+        case 'duration':
+          valA = parseFloat(a.project_duration);
+          valB = parseFloat(b.project_duration);
+          if (isNaN(valA) && isNaN(valB)) return 0;
+          if (isNaN(valA)) return 1;
+          if (isNaN(valB)) return -1;
+          return sortDirection === 'asc' ? valA - valB : valB - valA;
+        case 'value':
+          valA = parseFloat(a.project_value);
+          valB = parseFloat(b.project_value);
+          if (isNaN(valA) && isNaN(valB)) return 0;
+          if (isNaN(valA)) return 1;
+          if (isNaN(valB)) return -1;
+          return sortDirection === 'asc' ? valA - valB : valB - valA;
+        case 'created_at':
+          valA = a.created_at ? new Date(a.created_at).getTime() : 0;
+          valB = b.created_at ? new Date(b.created_at).getTime() : 0;
+          return sortDirection === 'asc' ? valA - valB : valB - valA;
+        default:
+          return 0;
+      }
+    });
+  }, [filteredProposals, sortField, sortDirection]);
 
   // Pagination
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentProposals = filteredProposals.slice(indexOfFirstItem, indexOfLastItem);
-  const totalPages = Math.ceil(filteredProposals.length / itemsPerPage);
+  const currentProposals = sortedProposals.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(sortedProposals.length / itemsPerPage);
 
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
@@ -215,9 +301,20 @@ const ProposalManager = () => {
               </div>
               <div className="flex space-x-4">
                 <select
+                  value={projectTypeFilter}
+                  onChange={(e) => setProjectTypeFilter(e.target.value)}
+                  className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 bg-white text-gray-700"
+                >
+                  {projectTypes.map(type => (
+                    <option key={type} value={type}>
+                      {type === 'All' ? 'All Project Types' : type}
+                    </option>
+                  ))}
+                </select>
+                <select
                   value={statusFilter}
                   onChange={(e) => setStatusFilter(e.target.value)}
-                  className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                  className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 bg-white text-gray-700"
                 >
                   <option value="All">All Status</option>
                   <option value="Pending">Pending</option>
@@ -251,29 +348,107 @@ const ProposalManager = () => {
                   <table className="min-w-full divide-y divide-gray-200">
                     <thead className="bg-gray-50">
                       <tr>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Proposal ID
+                        <th 
+                          className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer select-none hover:bg-gray-100 transition-colors"
+                          onClick={() => handleSort('proposal_id')}
+                        >
+                          <div className="flex items-center space-x-1">
+                            <span>Proposal ID</span>
+                            <span className="flex flex-col">
+                              <svg className={`h-2 w-2 ${sortField === 'proposal_id' && sortDirection === 'asc' ? 'text-green-600' : 'text-gray-400'}`} fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M12 4l-8 8h16z" />
+                              </svg>
+                              <svg className={`h-2 w-2 ${sortField === 'proposal_id' && sortDirection === 'desc' ? 'text-green-600' : 'text-gray-400'}`} fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M12 20l-8-8h16z" />
+                              </svg>
+                            </span>
+                          </div>
                         </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Customer
+                        <th 
+                          className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer select-none hover:bg-gray-100 transition-colors"
+                          onClick={() => handleSort('customer_id')}
+                        >
+                          <div className="flex items-center space-x-1">
+                            <span>Customer ID</span>
+                            <span className="flex flex-col">
+                              <svg className={`h-2 w-2 ${sortField === 'customer_id' && sortDirection === 'asc' ? 'text-green-600' : 'text-gray-400'}`} fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M12 4l-8 8h16z" />
+                              </svg>
+                              <svg className={`h-2 w-2 ${sortField === 'customer_id' && sortDirection === 'desc' ? 'text-green-600' : 'text-gray-400'}`} fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M12 20l-8-8h16z" />
+                              </svg>
+                            </span>
+                          </div>
                         </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Land
+                        <th 
+                          className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer select-none hover:bg-gray-100 transition-colors"
+                          onClick={() => handleSort('customer_land_id')}
+                        >
+                          <div className="flex items-center space-x-1">
+                            <span>Land ID</span>
+                            <span className="flex flex-col">
+                              <svg className={`h-2 w-2 ${sortField === 'customer_land_id' && sortDirection === 'asc' ? 'text-green-600' : 'text-gray-400'}`} fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M12 4l-8 8h16z" />
+                              </svg>
+                              <svg className={`h-2 w-2 ${sortField === 'customer_land_id' && sortDirection === 'desc' ? 'text-green-600' : 'text-gray-400'}`} fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M12 20l-8-8h16z" />
+                              </svg>
+                            </span>
+                          </div>
                         </th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                           Project Type
                         </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Duration
+                        <th 
+                          className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer select-none hover:bg-gray-100 transition-colors"
+                          onClick={() => handleSort('duration')}
+                        >
+                          <div className="flex items-center space-x-1">
+                            <span>Duration</span>
+                            <span className="flex flex-col">
+                              <svg className={`h-2 w-2 ${sortField === 'duration' && sortDirection === 'asc' ? 'text-green-600' : 'text-gray-400'}`} fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M12 4l-8 8h16z" />
+                              </svg>
+                              <svg className={`h-2 w-2 ${sortField === 'duration' && sortDirection === 'desc' ? 'text-green-600' : 'text-gray-400'}`} fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M12 20l-8-8h16z" />
+                              </svg>
+                            </span>
+                          </div>
                         </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Value
+                        <th 
+                          className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer select-none hover:bg-gray-100 transition-colors"
+                          onClick={() => handleSort('value')}
+                        >
+                          <div className="flex items-center space-x-1">
+                            <span>Value</span>
+                            <span className="flex flex-col">
+                              <svg className={`h-2 w-2 ${sortField === 'value' && sortDirection === 'asc' ? 'text-green-600' : 'text-gray-400'}`} fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M12 4l-8 8h16z" />
+                              </svg>
+                              <svg className={`h-2 w-2 ${sortField === 'value' && sortDirection === 'desc' ? 'text-green-600' : 'text-gray-400'}`} fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M12 20l-8-8h16z" />
+                              </svg>
+                            </span>
+                          </div>
                         </th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                           Status
                         </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Created Date
+                        <th 
+                          className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer select-none hover:bg-gray-100 transition-colors"
+                          onClick={() => handleSort('created_at')}
+                        >
+                          <div className="flex items-center space-x-1">
+                            <span>Created Date</span>
+                            <span className="flex flex-col">
+                              <svg className={`h-2 w-2 ${sortField === 'created_at' && sortDirection === 'asc' ? 'text-green-600' : 'text-gray-400'}`} fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M12 4l-8 8h16z" />
+                              </svg>
+                              <svg className={`h-2 w-2 ${sortField === 'created_at' && sortDirection === 'desc' ? 'text-green-600' : 'text-gray-400'}`} fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M12 20l-8-8h16z" />
+                              </svg>
+                            </span>
+                          </div>
                         </th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                           Actions
@@ -286,17 +461,17 @@ const ProposalManager = () => {
                           <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                             #{proposal.proposal_id}
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                            {proposal.customer_name}
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900" title={proposal.customer_name}>
+                            {proposal.customer_id}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                            {proposal.needs_land_selection ? (
-                              <span className="text-red-600 font-medium">
+                            {proposal.needs_land_selection || !proposal.customer_land_id ? (
+                              <span className="text-red-600 font-medium" title="Land selection is required">
                                 ⚠️ Land Required
                               </span>
                             ) : (
-                              <span className="text-green-600">
-                                {proposal.land_info}
+                              <span className="text-green-600 font-semibold" title={proposal.land_info}>
+                                {proposal.customer_land_id}
                               </span>
                             )}
                           </td>
@@ -332,12 +507,14 @@ const ProposalManager = () => {
                               >
                                 Edit
                               </Link>
-                              <button
-                                onClick={() => handleDelete(proposal.proposal_id)}
-                                className="text-red-600 hover:text-red-900"
-                              >
-                                Delete
-                              </button>
+                              {userRole === 'Admin' && (
+                                <button
+                                  onClick={() => handleDelete(proposal.proposal_id)}
+                                  className="text-red-600 hover:text-red-900"
+                                >
+                                  Delete
+                                </button>
+                              )}
                             </div>
                           </td>
                         </tr>
@@ -370,9 +547,9 @@ const ProposalManager = () => {
                         <p className="text-sm text-gray-700">
                           Showing <span className="font-medium">{indexOfFirstItem + 1}</span> to{' '}
                           <span className="font-medium">
-                            {Math.min(indexOfLastItem, filteredProposals.length)}
+                            {Math.min(indexOfLastItem, sortedProposals.length)}
                           </span>{' '}
-                          of <span className="font-medium">{filteredProposals.length}</span> results
+                          of <span className="font-medium">{sortedProposals.length}</span> results
                         </p>
                       </div>
                       <div>

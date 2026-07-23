@@ -56,7 +56,7 @@ exports.getApprovedProjects = async (req, res) => {
       include: [
         {
           model: Customer,
-          attributes: ['customer_id', 'full_name', 'email', 'phone_no_1']
+          attributes: ['customer_id', 'f_name', 'l_name', 'full_name', 'email', 'phone_no_1']
         },
         {
           model: CustomerLand,
@@ -86,12 +86,12 @@ exports.getApprovedProjects = async (req, res) => {
       include: [
         {
           model: Proposal,
-          attributes: ['proposal_id', 'customer_id', 'customer_land_id', 'project_type', 'project_duration'],
+          attributes: ['proposal_id', 'customer_id', 'customer_land_id', 'project_type', 'project_duration', 'project_value', 'payment_mode'],
           where: { status: 'Approved' },
           include: [
             {
               model: Customer,
-              attributes: ['customer_id', 'full_name', 'email', 'phone_no_1']
+              attributes: ['customer_id', 'f_name', 'l_name', 'full_name', 'email', 'phone_no_1']
             },
             {
               model: CustomerLand,
@@ -142,7 +142,7 @@ exports.getProjectDetails = async (req, res) => {
       include: [
         {
           model: Proposal,
-          attributes: ['proposal_id', 'customer_id', 'customer_land_id', 'project_type', 'project_duration'],
+          attributes: ['proposal_id', 'customer_id', 'customer_land_id', 'project_type', 'project_duration', 'project_value', 'payment_mode'],
           include: [
             {
               model: Customer,
@@ -150,7 +150,7 @@ exports.getProjectDetails = async (req, res) => {
             },
             {
               model: CustomerLand,
-              attributes: ['customer_land_id', 'city', 'land_size']
+              attributes: ['customer_land_id', 'city', 'district', 'province', 'land_size']
             }
           ]
         },
@@ -835,6 +835,48 @@ exports.updateProjectPayment = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Server error while updating project payment'
+    });
+  }
+};
+
+exports.deleteProject = async (req, res) => {
+  try {
+    const { projectId } = req.params;
+
+    const project = await Project.findByPk(projectId);
+
+    if (!project) {
+      return res.status(404).json({
+        success: false,
+        message: 'Project not found'
+      });
+    }
+
+    // Delete associated ProjectProgress entries
+    const ProjectProgress = require('../models/ProjectProgress');
+    await ProjectProgress.destroy({
+      where: { project_id: projectId }
+    });
+
+    // Delete associated legacy Progress entries
+    const Progress = require('../models/progress');
+    await Progress.destroy({
+      where: { project_id: projectId }
+    });
+
+    // Finally delete the project
+    await project.destroy();
+
+    res.json({
+      success: true,
+      message: 'Project deleted successfully'
+    });
+  } catch (err) {
+    console.error('Error deleting project:', err);
+    res.status(500).json({
+      success: false,
+      message: 'Server error while deleting project',
+      details: err.message
     });
   }
 };

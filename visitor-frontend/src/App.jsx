@@ -9,6 +9,7 @@ import AboutPage from './Pages/Visitor/AboutPage';
 import ContactPage from './Pages/Visitor/ContactPage';
 import CustomerLogin from './Pages/Customer/CustomerLogin';
 import CustomerDashBoard from './Pages/Customer/CustomerDashBoard';
+import NewInvestmentPage from './Pages/Customer/NewInvestmentPage';
 import LandCheckPage from './Pages/Visitor/LandCheckPage';
 import ResultsCalculation from './Pages/Visitor/ResultsCalculation';
 
@@ -29,6 +30,7 @@ function App() {
       <Route path="/contact" element={<ContactPage />} />
       <Route path="/customer/login" element={<CustomerLogin />} />
       <Route path="/customer/CustomerDashBoard" element={<CustomerDashBoard />} />
+      <Route path="/customer/new-investment" element={<NewInvestmentPage />} />
       <Route path="/try-agarwood" element={<LandCheckPage />} />
       <Route path="/try-agarwood/results/:landSize" element={<ResultsCalculation />} />
 

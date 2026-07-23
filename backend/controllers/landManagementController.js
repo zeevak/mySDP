@@ -152,18 +152,41 @@ const landManagementController = {
         });
       }
 
-      // Delete land
+      // 1. Find all proposals associated with this land
+      const Proposal = require('../models/Proposal');
+      const proposals = await Proposal.findAll({ where: { customer_land_id: id } });
+
+      for (const proposal of proposals) {
+        // Find and delete related project and its progress
+        const Project = require('../models/Project');
+        const project = await Project.findOne({ where: { proposal_id: proposal.proposal_id } });
+        if (project) {
+          const ProjectProgress = require('../models/ProjectProgress');
+          await ProjectProgress.destroy({ where: { project_id: project.project_id } });
+
+          const Progress = require('../models/progress');
+          await Progress.destroy({ where: { project_id: project.project_id } });
+
+          await project.destroy();
+        }
+
+        // Delete the proposal
+        await proposal.destroy();
+      }
+
+      // 2. Delete land
       await land.destroy();
 
       res.status(200).json({
         success: true,
-        message: 'Land deleted successfully'
+        message: 'Land and all associated proposals and projects deleted successfully'
       });
     } catch (err) {
       console.error('Error deleting land:', err);
       res.status(500).json({
         success: false,
-        error: 'Failed to delete land'
+        error: 'Failed to delete land',
+        details: err.message
       });
     }
   }

@@ -6,6 +6,7 @@ import axios from 'axios';
 import Header from '../../Components/Header';
 import Footer from '../../Components/Footer';
 import ResultsCalculation from './ResultsCalculation';
+import { authService } from '../../services/authService';
 import {
   provinces,
   districtsMap,
@@ -18,6 +19,8 @@ import {
 const AgarwoodCalculator = () => {
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
+  const [isExistingCustomer, setIsExistingCustomer] = useState(false);
+  const [customerLoading, setCustomerLoading] = useState(false);
   const [districts, setDistricts] = useState([]);
   const [cities, setCities] = useState([]);
   const [citiesMap, setCitiesMap] = useState({});
@@ -27,6 +30,22 @@ const AgarwoodCalculator = () => {
   const [waterBlocksProgress, setWaterBlocksProgress] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState(null);
+
+  // Helper to format phone number to exactly 9 digits
+  const formatPhoneNumber = (phoneStr) => {
+    if (!phoneStr) return '';
+    // Remove all non-digit characters
+    let digits = phoneStr.replace(/\D/g, '');
+    // If starts with 94 and is 11 digits (e.g. 94771234567), strip 94
+    if (digits.startsWith('94') && digits.length === 11) {
+      digits = digits.substring(2);
+    }
+    // If starts with 0 and is 10 digits (e.g. 0771234567), strip 0
+    if (digits.startsWith('0') && digits.length === 10) {
+      digits = digits.substring(1);
+    }
+    return digits;
+  };
 
   // Add state for radio button warnings
   const [radioWarnings, setRadioWarnings] = useState({
@@ -138,6 +157,39 @@ const AgarwoodCalculator = () => {
     loadCities();
   }, []);
 
+  // Check auth and pre-populate form for existing customers
+  useEffect(() => {
+    const checkAuthAndPrepopulate = async () => {
+      const token = localStorage.getItem('token');
+      if (token) {
+        try {
+          setCustomerLoading(true);
+          const response = await authService.getCurrentUser();
+          if (response?.data?.data) {
+            const cust = response.data.data;
+            formik.setValues({
+              ...formik.values,
+              title: cust.title || '',
+              firstName: cust.firstName || '',
+              lastName: cust.lastName || '',
+              nic: cust.nicNumber || '',
+              phone: formatPhoneNumber(cust.phoneNumber1 || cust.phoneNumber2 || ''),
+              email: cust.email || '',
+            });
+            setIsExistingCustomer(true);
+            setStep(2); // Bypass step 1
+          }
+        } catch (error) {
+          console.error('Error fetching current customer for calculator:', error);
+        } finally {
+          setCustomerLoading(false);
+        }
+      }
+    };
+
+    checkAuthAndPrepopulate();
+  }, []);
+
   // Handle district change
   const handleDistrictChange = (e) => {
     const district = e.target.value;
@@ -208,6 +260,9 @@ const AgarwoodCalculator = () => {
 
   // Go to specific step
   const goToStep = (newStep) => {
+    if (isExistingCustomer && newStep === 1) {
+      return; // Bypassed step 1
+    }
     if (newStep > step) {
       validateCurrentStep();
     } else {
@@ -408,28 +463,44 @@ const AgarwoodCalculator = () => {
               Find out if your land is suitable for growing agarwood, a high-value plantation crop.
             </p>
 
-            {/* Progress Steps */}
-            <div className="flex justify-between mb-8">
-              {[1, 2, 3, 4, 5].map((stepNumber) => (
-                <button
-                  key={stepNumber}
-                  onClick={() => goToStep(stepNumber)}
-                  type="button"
-                  className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                    stepNumber === step
-                      ? 'bg-green-600 text-white'
-                      : stepNumber < step
-                        ? 'bg-green-200 text-green-800 hover:bg-green-300'
-                        : 'bg-gray-200 text-gray-600 cursor-not-allowed'
-                  }`}
-                  disabled={stepNumber > step}
-                >
-                  {stepNumber}
-                </button>
-              ))}
-            </div>
+            {customerLoading ? (
+              <div className="flex flex-col items-center justify-center py-12">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-700 mb-4"></div>
+                <p className="text-gray-600">Loading your profile information...</p>
+              </div>
+            ) : (
+              <>
+                {/* Progress Steps */}
+                <div className="flex justify-between mb-8">
+                  {[1, 2, 3, 4, 5].map((stepNumber) => (
+                    <button
+                      key={stepNumber}
+                      onClick={() => goToStep(stepNumber)}
+                      type="button"
+                      className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                        isExistingCustomer && stepNumber === 1
+                          ? 'bg-green-100 text-green-600 cursor-not-allowed border border-green-200'
+                          : stepNumber === step
+                            ? 'bg-green-600 text-white'
+                            : stepNumber < step
+                              ? 'bg-green-200 text-green-800 hover:bg-green-300'
+                              : 'bg-gray-200 text-gray-600 cursor-not-allowed'
+                      }`}
+                      disabled={stepNumber > step || (isExistingCustomer && stepNumber === 1)}
+                      title={isExistingCustomer && stepNumber === 1 ? 'Personal details loaded from profile' : `Step ${stepNumber}`}
+                    >
+                      {isExistingCustomer && stepNumber === 1 ? (
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                      ) : (
+                        stepNumber
+                      )}
+                    </button>
+                  ))}
+                </div>
 
-            <form>
+                <form>
               {/* Step 1: Visitor Details */}
               {step === 1 && (
                 <div>
@@ -675,18 +746,18 @@ const AgarwoodCalculator = () => {
                   <h2 className="text-xl font-semibold text-green-800 mb-4">Climate Zone</h2>
                   <div className="mb-4">
                     <label className="block text-sm font-medium text-gray-700 mb-2">Select the climate zone of your land:*</label>
-                    <div className="space-y-2">
+                    <div className="space-y-2 max-h-72 overflow-y-auto pr-2 border rounded-md p-2 shadow-inner bg-gray-50/50">
                       {climateZones.map((zone) => (
-                        <label key={zone} className="flex items-center p-3 border rounded-md hover:bg-green-50">
+                        <label key={zone} className="flex items-center p-3 border bg-white rounded-md hover:bg-green-50 cursor-pointer transition-colors duration-200">
                           <input
                             type="radio"
                             name="climateZone"
                             value={zone}
                             checked={formik.values.climateZone === zone}
                             onChange={formik.handleChange}
-                            className="form-radio h-4 w-4 text-green-600"
+                            className="form-radio h-4 w-4 text-green-600 focus:ring-green-500"
                           />
-                          <span className="ml-2 capitalize">{zone}</span>
+                          <span className="ml-2 capitalize text-gray-700 font-medium">{zone}</span>
                         </label>
                       ))}
                     </div>
@@ -1024,7 +1095,7 @@ const AgarwoodCalculator = () => {
               {/* Navigation Buttons */}
               {step < 6 && (
                 <div className="flex justify-between mt-8">
-                  {step > 1 && (
+                  {step > (isExistingCustomer ? 2 : 1) && (
                     <button
                       type="button"
                       onClick={() => setStep(step - 1)}
@@ -1079,6 +1150,8 @@ const AgarwoodCalculator = () => {
               )}
 
             </form>
+          </>
+        )}
           </div>
         </div>
       </main>

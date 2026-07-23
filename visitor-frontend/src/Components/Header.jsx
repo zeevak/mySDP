@@ -109,6 +109,16 @@ const Header = () => {
     }
   };
 
+  const customerNameDisplay = (() => {
+    if (!userData) return 'Customer';
+    const fName = userData.firstName || userData.data?.firstName;
+    const lName = userData.lastName || userData.data?.lastName;
+    if (fName) {
+      return `${fName} ${lName || ''}`.trim();
+    }
+    return userData.name || userData.data?.fullName || 'Customer';
+  })();
+
   return (
     <nav ref={navRef} className={`bg-white border-b border-green-100 ${scrolled ? 'shadow-md' : ''} transition-all duration-300 sticky top-0 z-50`}>
       <div className="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-4">
@@ -124,9 +134,20 @@ const Header = () => {
         <div className="flex items-center md:order-2">
           {isAuthenticated ? (
             <div className="flex items-center space-x-4">
-              <span className="text-green-700 font-medium">
-                Welcome, {userData?.firstName || userData?.data?.firstName || 'Customer'}
-              </span>
+              <NavLink 
+                to="/customer/CustomerDashBoard" 
+                className="flex items-center space-x-2 group focus:outline-none focus:ring-2 focus:ring-green-300 rounded-lg p-1 transition-all duration-200"
+                title="Go to Dashboard"
+              >
+                <div className="w-9 h-9 rounded-full bg-green-100 flex items-center justify-center border border-green-200 text-green-700 group-hover:bg-green-200 group-hover:scale-105 transition-all duration-200 shadow-sm overflow-hidden">
+                  <svg className="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path fillRule="evenodd" d="M12 2.5a5.5 5.5 0 100 11 5.5 5.5 0 000-11zM3.408 20.11a8.99 8.99 0 0117.184 0 1 1 0 01-.88 1.39H4.286a1 1 0 01-.877-1.39z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <span className="text-green-700 font-medium group-hover:text-green-800 transition-colors duration-200">
+                  {customerNameDisplay}
+                </span>
+              </NavLink>
               <button 
                 onClick={handleLogout}
                 className="text-white bg-red-600 hover:bg-red-700 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center mr-2"

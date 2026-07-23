@@ -255,7 +255,7 @@ exports.getAllProposals = async (req, res) => {
         {
           model: Customer,
           as: 'Customer',
-          attributes: ['full_name', 'email', 'phone_no_1'],
+          attributes: ['f_name', 'l_name', 'full_name', 'email', 'phone_no_1'],
           required: true
         },
         {
@@ -271,7 +271,10 @@ exports.getAllProposals = async (req, res) => {
     // Transform the data to include customer_name and land_info
     const transformedProposals = proposals.map(proposal => ({
       ...proposal.toJSON(),
-      customer_name: proposal.Customer ? proposal.Customer.full_name : 'Unknown',
+      customer_name: proposal.Customer ? 
+        (proposal.Customer.f_name || proposal.Customer.l_name ? 
+          `${proposal.Customer.f_name || ''} ${proposal.Customer.l_name || ''}`.trim() : 
+          proposal.Customer.full_name) : 'Unknown',
       land_info: proposal.CustomerLand ?
         `${proposal.CustomerLand.city}, ${proposal.CustomerLand.district}, ${proposal.CustomerLand.province} (${proposal.CustomerLand.land_size} perch)` :
         'No land selected',
@@ -455,17 +458,31 @@ exports.deleteProposal = async (req, res) => {
       });
     }
 
+    // Find and delete related project and its progress logs
+    const Project = require('../models/Project');
+    const project = await Project.findOne({ where: { proposal_id: proposal.proposal_id } });
+    if (project) {
+      const ProjectProgress = require('../models/ProjectProgress');
+      await ProjectProgress.destroy({ where: { project_id: project.project_id } });
+
+      const Progress = require('../models/progress');
+      await Progress.destroy({ where: { project_id: project.project_id } });
+
+      await project.destroy();
+    }
+
     await proposal.destroy();
 
     res.status(200).json({
       success: true,
-      message: 'Proposal deleted successfully'
+      message: 'Proposal and associated project deleted successfully'
     });
   } catch (err) {
     console.error('Error deleting proposal:', err);
     res.status(500).json({
       success: false,
-      error: 'Failed to delete proposal'
+      error: 'Failed to delete proposal',
+      details: err.message
     });
   }
 };

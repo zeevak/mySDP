@@ -28,6 +28,7 @@ const EditProposal = () => {
   const [paymentDetails, setPaymentDetails] = useState(null);
   const [calculating, setCalculating] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [customCropType, setCustomCropType] = useState('');
 
   // Fetch proposal details
   useEffect(() => {
@@ -57,6 +58,12 @@ const EditProposal = () => {
             payment_mode: proposalData.payment_mode || '',
             status: proposalData.status || ''
           });
+
+          // Initialize custom crop type if it is not a predefined type
+          const pType = proposalData.project_type || '';
+          if (pType && pType !== 'Agarwood' && pType !== 'Sandalwood' && pType !== 'Vanilla') {
+            setCustomCropType(pType);
+          }
 
           // Fetch customer details and lands
           if (proposalData.customer_id) {
@@ -363,19 +370,50 @@ const EditProposal = () => {
                 </label>
                 <select
                   name="project_type"
-                  value={formData.project_type}
-                  onChange={handleInputChange}
+                  value={formData.project_type === 'Agarwood' || formData.project_type === 'Sandalwood' || formData.project_type === 'Vanilla' ? formData.project_type : (formData.project_type ? 'Other' : '')}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setFormData(prev => ({
+                      ...prev,
+                      project_type: val === 'Other' ? '' : val
+                    }));
+                    if (val !== 'Other') {
+                      setCustomCropType('');
+                    }
+                  }}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
                   required
                 >
                   <option value="">Select Project Type</option>
                   <option value="Agarwood">Agarwood</option>
-                  <option value="Coconut">Coconut</option>
-                  <option value="Cinnamon">Cinnamon</option>
-                  <option value="Pepper">Pepper</option>
+                  <option value="Sandalwood">Sandalwood</option>
                   <option value="Vanilla">Vanilla</option>
+                  <option value="Other">Other</option>
                 </select>
               </div>
+
+              {(formData.project_type === '' || (formData.project_type !== 'Agarwood' && formData.project_type !== 'Sandalwood' && formData.project_type !== 'Vanilla')) && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Specify Crop Type *
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Enter crop type..."
+                    value={customCropType || formData.project_type}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setCustomCropType(val);
+                      setFormData(prev => ({
+                        ...prev,
+                        project_type: val
+                      }));
+                    }}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
+                    required
+                  />
+                </div>
+              )}
 
               {/* Project Duration */}
               <div>

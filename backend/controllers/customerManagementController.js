@@ -63,15 +63,47 @@ const customerManagementController = {
         });
       }
 
-      // Fetch customer lands separately if needed
-      // const customerLands = await CustomerLand.findAll({
-      //   where: { customer_id: id }
-      // });
+      // Fetch customer lands
+      const customerLands = await CustomerLand.findAll({
+        where: { customer_id: id }
+      });
+
+      // Fetch customer proposals
+      const Proposal = require('../models/Proposal');
+      const customerProposals = await Proposal.findAll({
+        where: { customer_id: id },
+        include: [
+          {
+            model: CustomerLand,
+            as: 'CustomerLand',
+            attributes: ['city', 'district', 'province', 'land_size']
+          }
+        ],
+        order: [['created_at', 'DESC']]
+      });
+
+      // Fetch customer projects
+      const Project = require('../models/Project');
+      const customerProjects = await Project.findAll({
+        include: [
+          {
+            model: Proposal,
+            where: { customer_id: id },
+            attributes: ['proposal_id', 'project_type', 'project_duration', 'project_value']
+          }
+        ],
+        order: [['created_at', 'DESC']]
+      });
 
       console.log(`Customer found: ${customer.full_name}`);
       res.status(200).json({
         success: true,
-        data: customer
+        data: {
+          ...customer.toJSON(),
+          lands: customerLands,
+          proposals: customerProposals,
+          projects: customerProjects
+        }
       });
     } catch (err) {
       console.error('Error fetching customer:', err);
@@ -218,18 +250,42 @@ const customerManagementController = {
         });
       }
 
-      // Delete customer
+      // 1. Find all proposals for the customer
+      const Proposal = require('../models/Proposal');
+      const proposals = await Proposal.findAll({ where: { customer_id: id } });
+
+      // 2. For each proposal, delete associated project and its progress logs
+      for (const proposal of proposals) {
+        const Project = require('../models/Project');
+        const project = await Project.findOne({ where: { proposal_id: proposal.proposal_id } });
+        if (project) {
+          const ProjectProgress = require('../models/ProjectProgress');
+          await ProjectProgress.destroy({ where: { project_id: project.project_id } });
+
+          const Progress = require('../models/progress');
+          await Progress.destroy({ where: { project_id: project.project_id } });
+
+          await project.destroy();
+        }
+        await proposal.destroy();
+      }
+
+      // 3. Delete all lands for this customer
+      await CustomerLand.destroy({ where: { customer_id: id } });
+
+      // 4. Finally delete the customer record
       await customer.destroy();
 
       res.status(200).json({
         success: true,
-        message: 'Customer deleted successfully'
+        message: 'Customer and all associated lands, proposals, and projects deleted successfully'
       });
     } catch (err) {
       console.error('Error deleting customer:', err);
       res.status(500).json({
         success: false,
-        error: 'Failed to delete customer'
+        error: 'Failed to delete customer',
+        details: err.message
       });
     }
   },

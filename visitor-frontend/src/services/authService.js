@@ -38,5 +38,31 @@ export const authService = {
     
     getInvestmentSummary: async () => {
         return api.get("/customer/investment-summary");
+    },
+    
+    getProjectDetails: async (projectId) => {
+        return api.get(`/project/${projectId}`);
+    },
+
+    getProjectPayments: async (projectId) => {
+        return api.get(`/project/${projectId}/payments`);
+    },
+
+    submitNewInvestment: async (investmentData) => {
+        return api.post("/customer/new-investment", investmentData);
+    },
+
+    getDocuments: async () => {
+        return api.get("/customer/documents");
+    },
+
+    uploadDocument: async (formData) => {
+        return api.post("/customer/documents", formData, {
+            headers: { "Content-Type": "multipart/form-data" }
+        });
+    },
+
+    deleteDocument: async (documentId) => {
+        return api.delete(`/customer/documents/${documentId}`);
     }
 };

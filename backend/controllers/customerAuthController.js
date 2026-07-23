@@ -9,7 +9,7 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const { Op } = require("sequelize");
 // Import database models
-const { Customer, CustomerLand, Proposal, Project, Payment } = require("../models");
+const { Customer, CustomerLand, Proposal, Project, Payment, CustomerDocument } = require("../models");
 // Import email service
 const emailService = require("../utils/emailService");
 // Load environment variables
@@ -321,7 +321,7 @@ exports.getInvestmentSummary = async (req, res) => {
   try {
     const userId = req.user.id;
 
-    // Get all approved proposals for the customer, including their associated Project
+    // Get all approved proposals for the customer, including their associated Project and CustomerLand
     const proposals = await Proposal.findAll({
       where: {
         customer_id: userId,
@@ -330,6 +330,10 @@ exports.getInvestmentSummary = async (req, res) => {
       include: [
         {
           model: Project,
+          required: false
+        },
+        {
+          model: CustomerLand,
           required: false
         }
       ]
@@ -344,9 +348,30 @@ exports.getInvestmentSummary = async (req, res) => {
           isInstallment: false,
           nextPaymentDate: null,
           nextPaymentAmount: 0,
-          recentActivity: []
+          recentActivity: [],
+          projects: []
         }
       });
+    }
+
+    // Ensure a Project record exists for every approved proposal
+    for (const proposal of proposals) {
+      if (!proposal.project) {
+        const existingProject = await Project.findOne({
+          where: { proposal_id: proposal.proposal_id }
+        });
+        if (!existingProject) {
+          const newProj = await Project.create({
+            proposal_id: proposal.proposal_id,
+            status: 'Yet To Start',
+            progress_percentage: 0,
+            last_updated: new Date()
+          });
+          proposal.project = newProj;
+        } else {
+          proposal.project = existingProject;
+        }
+      }
     }
 
     // Get all payments for these proposals
@@ -412,10 +437,22 @@ exports.getInvestmentSummary = async (req, res) => {
         payment_date: p.payment_date
       }));
 
+      const land = proposal.customer_land || proposal.CustomerLand;
+      const district = land?.district || '';
+      const city = land?.city || '';
+      const landLocation = (district && city) ? `${district}, ${city}` : (district || city || 'N/A');
+
       projectsList.push({
         proposalId: proposal.proposal_id,
+        projectId: proposal.project ? proposal.project.project_id : null,
         projectType: proposal.project_type,
         paymentMode: proposal.payment_mode,
+        district: district,
+        city: city,
+        landLocation: landLocation,
+        landSize: land?.land_size || null,
+        projectDuration: proposal.project_duration,
+        projectValue: projectValue,
         totalInvested: parseFloat(projectTotalInvested.toFixed(2)),
         totalPaid: parseFloat(projectTotalPaid.toFixed(2)),
         isInstallment: projectIsInstallment,
@@ -426,6 +463,7 @@ exports.getInvestmentSummary = async (req, res) => {
           projectId: proposal.project.project_id,
           status: proposal.project.status,
           startDate: proposal.project.start_date,
+          endDate: proposal.project.end_date,
           progressPercentage: proposal.project.progress_percentage
         } : null
       });
@@ -456,6 +494,40 @@ exports.getInvestmentSummary = async (req, res) => {
       payment_date: p.payment_date
     }));
 
+    // Also fetch any pending or under-review proposals for this customer
+    const pendingProposals = await Proposal.findAll({
+      where: {
+        customer_id: userId,
+        status: { [Op.in]: ['Pending', 'Under Review'] }
+      },
+      include: [
+        {
+          model: CustomerLand,
+          required: false
+        }
+      ],
+      order: [['created_at', 'DESC']]
+    });
+
+    const pendingList = pendingProposals.map(p => {
+      const land = p.customer_land || p.CustomerLand;
+      const district = land?.district || '';
+      const city = land?.city || '';
+      const landLocation = (district && city) ? `${district}, ${city}` : (district || city || 'N/A');
+
+      return {
+        proposalId: p.proposal_id,
+        projectType: p.project_type,
+        projectDuration: p.project_duration,
+        projectValue: parseFloat(p.project_value || 0),
+        paymentMode: p.payment_mode,
+        status: p.status,
+        proposalDate: p.proposal_date || p.created_at,
+        landLocation: landLocation,
+        landSize: land?.land_size || null
+      };
+    });
+
     return res.json({
       success: true,
       data: {
@@ -465,7 +537,8 @@ exports.getInvestmentSummary = async (req, res) => {
         nextPaymentDate,
         nextPaymentAmount: parseFloat(nextPaymentAmount.toFixed(2)),
         recentActivity,
-        projects: projectsList
+        projects: projectsList,
+        pendingProposals: pendingList
       }
     });
 
@@ -474,6 +547,214 @@ exports.getInvestmentSummary = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Internal server error while fetching investment summary"
+    });
+  }
+};
+
+// Submit a new investment proposal (creates land + proposal with status 'Pending')
+exports.submitNewInvestment = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const {
+      // Land details
+      province,
+      district,
+      city,
+      climate_zone,
+      land_shape,
+      has_water,
+      soil_type,
+      has_stones,
+      has_landslide_risk,
+      has_forestry,
+      land_size,
+      // Proposal details
+      project_type,
+      project_duration,
+      project_value,
+      payment_mode
+    } = req.body;
+
+    if (!project_type || !project_duration || !project_value || !land_size) {
+      return res.status(400).json({
+        success: false,
+        message: "Please fill in all required fields (Land size, Project type, duration, value)"
+      });
+    }
+
+    // 1. Create land record for customer
+    const land = await CustomerLand.create({
+      customer_id: userId,
+      province: province || null,
+      district: district || null,
+      city: city || null,
+      climate_zone: climate_zone || null,
+      land_shape: land_shape || null,
+      has_water: !!has_water,
+      soil_type: soil_type || null,
+      has_stones: !!has_stones,
+      has_landslide_risk: !!has_landslide_risk,
+      has_forestry: !!has_forestry,
+      land_size: parseFloat(land_size)
+    });
+
+    // 2. Calculate installment values if payment_mode is 'installments'
+    let installment_count = null;
+    let installment_amount = null;
+    if (payment_mode === 'installments') {
+      installment_count = parseInt(project_duration) * 4;
+      installment_amount = parseFloat((parseFloat(project_value) / installment_count).toFixed(2));
+    }
+
+    // 3. Create proposal record with status 'Pending'
+    const proposal = await Proposal.create({
+      customer_id: userId,
+      customer_land_id: land.customer_land_id,
+      project_type,
+      project_duration: parseInt(project_duration),
+      project_value: parseFloat(project_value),
+      payment_mode: payment_mode || 'full',
+      installment_count,
+      installment_amount,
+      proposal_date: new Date(),
+      status: 'Pending'
+    });
+
+    return res.status(201).json({
+      success: true,
+      message: "Investment proposal submitted successfully! It is now pending staff review.",
+      data: {
+        proposal_id: proposal.proposal_id,
+        customer_land_id: land.customer_land_id,
+        status: proposal.status
+      }
+    });
+  } catch (error) {
+    console.error("Error submitting customer investment proposal:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to submit investment proposal. Please try again."
+    });
+  }
+};
+
+// Upload a document with a caption
+exports.uploadDocument = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { caption } = req.body;
+
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        message: "No document file uploaded"
+      });
+    }
+
+    if (!caption || !caption.trim()) {
+      return res.status(400).json({
+        success: false,
+        message: "Document caption is required (e.g. Land deed, ID, Proof of Address)"
+      });
+    }
+
+    const newDoc = await CustomerDocument.create({
+      customer_id: userId,
+      caption: caption.trim(),
+      file_name: req.file.originalname,
+      file_path: `/uploads/documents/${req.file.filename}`,
+      file_type: req.file.mimetype || req.file.filename.split('.').pop(),
+      file_size: req.file.size
+    });
+
+    return res.status(201).json({
+      success: true,
+      message: "Document uploaded successfully",
+      data: newDoc
+    });
+  } catch (err) {
+    console.error("Upload Document Error:", err);
+    return res.status(500).json({
+      success: false,
+      message: err.message || "Failed to upload document"
+    });
+  }
+};
+
+// Get all documents for current customer
+exports.getDocuments = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const documents = await CustomerDocument.findAll({
+      where: { customer_id: userId },
+      order: [['created_at', 'DESC']]
+    });
+
+    return res.json({
+      success: true,
+      data: documents
+    });
+  } catch (err) {
+    console.error("Get Documents Error:", err);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to retrieve documents"
+    });
+  }
+};
+
+// Delete a customer document
+exports.deleteDocument = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { documentId } = req.params;
+
+    const doc = await CustomerDocument.findOne({
+      where: {
+        document_id: documentId,
+        customer_id: userId
+      }
+    });
+
+    if (!doc) {
+      return res.status(404).json({
+        success: false,
+        message: "Document not found"
+      });
+    }
+
+    await doc.destroy();
+    return res.json({
+      success: true,
+      message: "Document deleted successfully"
+    });
+  } catch (err) {
+    console.error("Delete Document Error:", err);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to delete document"
+    });
+  }
+};
+
+// Get customer documents for staff view
+exports.getStaffCustomerDocuments = async (req, res) => {
+  try {
+    const { customerId } = req.params;
+    const documents = await CustomerDocument.findAll({
+      where: { customer_id: customerId },
+      order: [['created_at', 'DESC']]
+    });
+
+    return res.json({
+      success: true,
+      data: documents
+    });
+  } catch (err) {
+    console.error("Get Staff Customer Documents Error:", err);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to retrieve customer documents for staff"
     });
   }
 };

@@ -22,9 +22,8 @@ const Proposal = sequelize.define(
       references: { model: CustomerLand, key: "customer_land_id" },
     },
     project_type: {
-      type: DataTypes.STRING(10),
+      type: DataTypes.STRING(50),
       allowNull: false,
-      validate: { isIn: [["Agarwood", "Sandalwood", "Vanilla", "Other"]] },
     },
     project_duration: {
       type: DataTypes.INTEGER,
