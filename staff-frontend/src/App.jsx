@@ -22,6 +22,7 @@ import ProjectsPage from './Pages/Staff/ProjectsPage';
 import ProjectDetails from './Pages/Staff/ProjectDetails';
 import DashboardRedirect from './Components/DashboardRedirect';
 import CustomerDetails from './Pages/Staff/CustomerDetails';
+import CustomerReportsAnalytics from './Pages/Staff/CustomerReportsAnalytics';
 import ScrollToTop from './Components/ScrollToTop';
 
 // Protected route component
@@ -59,6 +60,10 @@ function App() {
         <Route
           path="/staff/customers"
           element={<ProtectedRoute element={<CustomerManager />} allowedRoles={['Staff', 'Admin']} />}
+        />
+        <Route
+          path="/staff/customers/generate-reports"
+          element={<ProtectedRoute element={<CustomerReportsAnalytics />} allowedRoles={['Staff', 'Admin']} />}
         />
         <Route
           path="/staff/customers/:customerId"

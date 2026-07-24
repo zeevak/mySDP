@@ -23,13 +23,28 @@ const customerManagementController = {
         attributes: {
           exclude: ['password_hash']
         },
+        include: [
+          {
+            model: CustomerLand,
+            as: 'customer_land',
+            attributes: ['customer_land_id', 'province', 'district', 'city']
+          }
+        ],
         order: [['created_at', 'DESC']]
+      });
+
+      const formattedCustomers = customers.map(c => {
+        const plain = c.toJSON();
+        return {
+          ...plain,
+          lands: plain.customer_land || []
+        };
       });
 
       res.status(200).json({
         success: true,
-        count: customers.length,
-        data: customers
+        count: formattedCustomers.length,
+        data: formattedCustomers
       });
     } catch (err) {
       console.error('Error fetching customers:', err);
@@ -95,6 +110,28 @@ const customerManagementController = {
         order: [['created_at', 'DESC']]
       });
 
+      // Fetch customer payments (linked to proposals)
+      const Payment = require('../models/Payment');
+      const proposalIds = customerProposals.map(p => p.proposal_id);
+      const customerPayments = proposalIds.length > 0 ? await Payment.findAll({
+        where: { proposal_id: proposalIds },
+        order: [['payment_date', 'DESC']]
+      }) : [];
+
+      // Fetch customer documents
+      const CustomerDocument = require('../models/CustomerDocument');
+      const customerDocuments = await CustomerDocument.findAll({
+        where: { customer_id: id },
+        order: [['created_at', 'DESC']]
+      });
+
+      // Fetch customer requests
+      const Request = require('../models/Request');
+      const customerRequests = await Request.findAll({
+        where: { customer_id: id },
+        order: [['request_date', 'DESC']]
+      });
+
       console.log(`Customer found: ${customer.full_name}`);
       res.status(200).json({
         success: true,
@@ -102,7 +139,10 @@ const customerManagementController = {
           ...customer.toJSON(),
           lands: customerLands,
           proposals: customerProposals,
-          projects: customerProjects
+          projects: customerProjects,
+          payments: customerPayments,
+          documents: customerDocuments,
+          requests: customerRequests
         }
       });
     } catch (err) {
@@ -384,6 +424,59 @@ const customerManagementController = {
       res.status(500).json({
         success: false,
         error: 'Failed to add customer land',
+        details: err.message
+      });
+    }
+  },
+  /**
+   * Get master analytics payload for customer reports
+   * @route GET /api/staff/customers/analytics/master
+   * @access Private (Staff, Admin)
+   */
+  getCustomerAnalyticsMaster: async (req, res) => {
+    try {
+      const Customer = require('../models/Customer');
+      const CustomerLand = require('../models/CustomerLand');
+      const Proposal = require('../models/Proposal');
+      const Project = require('../models/Project');
+      const Payment = require('../models/Payment');
+
+      const customers = await Customer.findAll({
+        attributes: { exclude: ['password_hash'] },
+        order: [['created_at', 'DESC']]
+      });
+
+      const lands = await CustomerLand.findAll({
+        order: [['customer_land_id', 'ASC']]
+      });
+
+      const proposals = await Proposal.findAll({
+        order: [['created_at', 'DESC']]
+      });
+
+      const projects = await Project.findAll({
+        order: [['created_at', 'DESC']]
+      });
+
+      const payments = await Payment.findAll({
+        order: [['payment_date', 'DESC']]
+      });
+
+      res.status(200).json({
+        success: true,
+        data: {
+          customers,
+          lands,
+          proposals,
+          projects,
+          payments
+        }
+      });
+    } catch (err) {
+      console.error('Error fetching customer analytics master data:', err);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to retrieve analytics master data',
         details: err.message
       });
     }

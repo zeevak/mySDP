@@ -42,7 +42,8 @@ const MonthlyReports = () => {
     summary: {
       totalVisitors: 0,
       totalCustomers: 0,
-      totalProjects: 0
+      totalProjects: 0,
+      totalRevenue: 0
     }
   });
   const [loading, setLoading] = useState(true);
@@ -490,7 +491,7 @@ const MonthlyReports = () => {
                 <div className="bg-yellow-50 p-4 rounded-lg">
                   <h3 className="text-sm font-medium text-yellow-600">Total Revenue</h3>
                   <p className="text-2xl font-bold text-yellow-900">
-                    LKR {reportData.revenue.reduce((sum, item) => sum + item.amount, 0).toLocaleString()}
+                    LKR {(reportData.summary?.totalRevenue ?? reportData.revenue.reduce((sum, item) => sum + item.amount, 0)).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </p>
                 </div>
               </div>

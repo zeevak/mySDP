@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { getAuthAxios } from '../../utils/authUtils';
 import StaffHeader from '../../Components/Staff_Header';
 import StaffFooter from '../../Components/Staff_Footer';
+import { generateIndividualCustomerPDF } from '../../utils/customerReportPdfService';
 
 const CustomerDetails = () => {
   const { customerId } = useParams();
@@ -11,6 +12,7 @@ const CustomerDetails = () => {
   const [documents, setDocuments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
 
   useEffect(() => {
     fetchCustomerDetails();
@@ -42,6 +44,22 @@ const CustomerDetails = () => {
       setError('Failed to load customer details. Please try again.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDownloadPDF = async () => {
+    if (!customer) return;
+    try {
+      setIsGeneratingPDF(true);
+      await generateIndividualCustomerPDF({
+        ...customer,
+        documents: documents && documents.length > 0 ? documents : (customer.documents || [])
+      });
+    } catch (pdfErr) {
+      console.error('Error generating PDF report:', pdfErr);
+      alert('Failed to generate PDF report. Please try again.');
+    } finally {
+      setIsGeneratingPDF(false);
     }
   };
 
@@ -170,6 +188,29 @@ const CustomerDetails = () => {
               <p className="text-sm text-gray-500">Customer ID: {customer.customer_id}</p>
             </div>
             <div className="flex flex-wrap gap-2 w-full sm:w-auto">
+              <button
+                onClick={handleDownloadPDF}
+                disabled={isGeneratingPDF}
+                className={`flex-1 sm:flex-initial text-center px-4 py-2 rounded-md font-semibold text-sm transition duration-150 flex items-center justify-center shadow-sm ${
+                  isGeneratingPDF
+                    ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                    : 'bg-emerald-600 text-white hover:bg-emerald-700'
+                }`}
+              >
+                {isGeneratingPDF ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    <span>Generating PDF...</span>
+                  </>
+                ) : (
+                  <>
+                    <svg className="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                    </svg>
+                    <span>Download PDF Report</span>
+                  </>
+                )}
+              </button>
               <Link
                 to="/staff/customers"
                 className="flex-1 sm:flex-initial text-center bg-gray-200 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-300 transition duration-150 text-sm font-semibold"

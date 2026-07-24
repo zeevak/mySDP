@@ -15,6 +15,7 @@ router.use(authorize(['Staff', 'Admin']));
 
 // Customer management routes
 router.get('/', customerManagementController.getAllCustomers);
+router.get('/analytics/master', customerManagementController.getCustomerAnalyticsMaster);
 router.get('/:id', customerManagementController.getCustomerById);
 router.put('/:id', customerManagementController.updateCustomer);
 router.delete('/:id', authorize(['Admin']), customerManagementController.deleteCustomer);

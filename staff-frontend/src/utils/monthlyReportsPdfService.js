@@ -101,7 +101,9 @@ export const generateMonthlyReportsPDF = async (reportData, dateRange) => {
     const totalProjects = reportData.summary?.totalProjects !== undefined
       ? reportData.summary.totalProjects
       : reportData.projects.reduce((sum, item) => sum + item.newProjects, 0);
-    const totalRevenue = reportData.revenue.reduce((sum, item) => sum + item.amount, 0);
+    const totalRevenue = reportData.summary?.totalRevenue !== undefined
+      ? reportData.summary.totalRevenue
+      : reportData.revenue.reduce((sum, item) => sum + item.amount, 0);
     const totalProfit = reportData.profits.reduce((sum, item) => sum + item.amount, 0);
     
     pdf.setFontSize(11);
