@@ -16,7 +16,8 @@ const InventoryManager = () => {
   const [selectedItem, setSelectedItem] = useState(null);
   const [formData, setFormData] = useState({
     item_name: '',
-    quantity: ''
+    quantity: '',
+    unit_type: 'Count'
   });
 
   // Modal state for edit and delete
@@ -26,13 +27,13 @@ const InventoryManager = () => {
   // Validation functions
   const validateItemName = (name) => {
     if (!name.trim()) return 'Item name is required';
-    if (!/^[A-Za-z0-9\s]+$/.test(name)) return 'Item name should only contain letters, numbers, and spaces';
+    if (!/^[A-Za-z0-9\s\-_()]+$/.test(name)) return 'Item name contains invalid characters';
     return '';
   };
 
   const validateQuantity = (quantity) => {
-    if (!quantity) return 'Quantity is required';
-    if (isNaN(quantity) || parseInt(quantity) < 0) return 'Quantity must be a non-negative number';
+    if (quantity === '' || quantity === undefined || quantity === null) return 'Quantity is required';
+    if (isNaN(quantity) || parseFloat(quantity) < 0) return 'Quantity must be a non-negative number';
     return '';
   };
 
@@ -42,8 +43,12 @@ const InventoryManager = () => {
     // Get user role from localStorage
     const userData = localStorage.getItem('user');
     if (userData) {
-      const user = JSON.parse(userData);
-      setUserRole(user.role);
+      try {
+        const user = JSON.parse(userData);
+        setUserRole(user.role);
+      } catch (e) {
+        console.error('Error parsing user data:', e);
+      }
     }
   }, []);
 
@@ -55,11 +60,9 @@ const InventoryManager = () => {
         headers: { Authorization: `Bearer ${token}` }
       });
 
-      // Check if response has data property
       if (response.data && response.data.data) {
         setInventory(response.data.data);
       } else if (Array.isArray(response.data)) {
-        // Handle case where response is directly an array
         setInventory(response.data);
       } else {
         console.error('Unexpected response format:', response.data);
@@ -76,9 +79,8 @@ const InventoryManager = () => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
+    setFormData(prev => ({ ...prev, [name]: value }));
 
-    // Validate the field as user types
     let errorMessage = '';
     switch (name) {
       case 'item_name':
@@ -91,7 +93,6 @@ const InventoryManager = () => {
         break;
     }
 
-    // Update form errors
     setFormErrors(prev => ({
       ...prev,
       [name]: errorMessage
@@ -103,7 +104,8 @@ const InventoryManager = () => {
     setSelectedItem(item);
     setFormData({
       item_name: item.item_name,
-      quantity: item.quantity
+      quantity: item.quantity,
+      unit_type: item.unit_type || 'Count'
     });
     setShowModal(true);
   };
@@ -120,13 +122,11 @@ const InventoryManager = () => {
         headers: { Authorization: `Bearer ${token}` }
       });
 
-      // Update local state after successful deletion
       setInventory(inventory.filter(item => item.inventory_id !== selectedItem.inventory_id));
       setShowDeleteConfirm(false);
       setSelectedItem(null);
       setSuccessMessage('Inventory item deleted successfully');
 
-      // Auto-hide success message after 5 seconds
       setTimeout(() => {
         setSuccessMessage(null);
       }, 5000);
@@ -139,58 +139,44 @@ const InventoryManager = () => {
   const handleSubmit = async (e) => {
     if (e) e.preventDefault();
 
-    // Clear previous messages
     setError(null);
     setSuccessMessage(null);
 
-    // Validate all fields
     const errors = {
       item_name: validateItemName(formData.item_name),
       quantity: validateQuantity(formData.quantity)
     };
 
-    // Update form errors
     setFormErrors(errors);
 
-    // Check if there are any validation errors
-    const hasErrors = Object.values(errors).some(error => error !== '');
+    const hasErrors = Object.values(errors).some(errStr => errStr !== '');
     if (hasErrors) {
       setError('Please fix the validation errors before submitting.');
       return;
     }
 
-    // Check for duplicate item name
     if (formMode === 'add' || (formMode === 'edit' && formData.item_name !== selectedItem?.item_name)) {
-      try {
-        // Check for existing values in other inventory items
-        const existingItem = inventory.find(item =>
-          item.inventory_id !== (selectedItem?.inventory_id || 0) &&
-          item.item_name.toLowerCase() === formData.item_name.toLowerCase()
-        );
+      const existingItem = inventory.find(item =>
+        item.inventory_id !== (selectedItem?.inventory_id || 0) &&
+        item.item_name.toLowerCase() === formData.item_name.toLowerCase()
+      );
 
-        if (existingItem) {
-          setFormErrors(prev => ({ ...prev, item_name: 'Item name already exists' }));
-          setError('Item name already exists. Please choose a different name.');
-          return;
-        }
-      } catch (err) {
-        console.error('Error checking for duplicates:', err);
+      if (existingItem) {
+        setFormErrors(prev => ({ ...prev, item_name: 'Item name already exists' }));
+        setError('Item name already exists. Please choose a different name.');
+        return;
       }
     }
 
     try {
       const token = localStorage.getItem('token');
-
-      // Create a properly formatted request payload
       const inventoryData = {
         item_name: formData.item_name.trim(),
-        quantity: parseInt(formData.quantity)
+        quantity: parseFloat(formData.quantity),
+        unit_type: formData.unit_type || 'Count'
       };
 
-      console.log('Sending inventory data:', inventoryData);
-
       if (formMode === 'edit' && selectedItem) {
-        // Update existing inventory item
         const response = await axios({
           method: 'put',
           url: `http://localhost:5001/api/inventory/${selectedItem.inventory_id}`,
@@ -201,69 +187,52 @@ const InventoryManager = () => {
           }
         });
 
-        // Update the inventory item in the local state
         setInventory(inventory.map(item => item.inventory_id === selectedItem.inventory_id ? response.data.data : item));
-
-        // Show success message
         setSuccessMessage(`Successfully updated ${formData.item_name} in inventory.`);
-
-        // Close modal if open
         setShowModal(false);
         setSelectedItem(null);
       } else {
-        // Add new inventory item
-        console.log('Adding new inventory item...');
+        const response = await axios({
+          method: 'post',
+          url: 'http://localhost:5001/api/inventory',
+          data: inventoryData,
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
 
-        try {
-          const response = await fetch('http://localhost:5001/api/inventory', {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${token}`,
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(inventoryData)
+        if (response.data && response.data.data) {
+          setInventory([...inventory, response.data.data]);
+          setSuccessMessage(`Successfully added ${formData.item_name} (${formData.quantity} ${formData.unit_type}) to inventory.`);
+          setFormData({
+            item_name: '',
+            quantity: '',
+            unit_type: 'Count'
           });
-
-          if (!response.ok) {
-            throw new Error(`HTTP error! Status: ${response.status}`);
-          }
-
-          const data = await response.json();
-          console.log('Response data:', data);
-
-          if (data && data.data) {
-            // Add the new inventory item to the local state
-            setInventory([...inventory, data.data]);
-
-            // Show success message
-            setSuccessMessage(`Successfully added ${formData.item_name} to inventory.`);
-
-            // Reset form for new items
-            setFormData({
-              item_name: '',
-              quantity: ''
-            });
-
-            // Clear form errors
-            setFormErrors({});
-          }
-        } catch (fetchError) {
-          console.error('Fetch error:', fetchError);
-          setError(`Failed to add inventory item: ${fetchError.message}`);
+          setFormErrors({});
         }
       }
 
-      // Auto-hide success message after 5 seconds
       setTimeout(() => {
         setSuccessMessage(null);
       }, 5000);
     } catch (err) {
       console.error('Error in handleSubmit:', err);
-      if (err.response) {
-        console.error('Response error data:', err.response.data);
-        console.error('Response error status:', err.response.status);
-      }
       setError(`Failed to ${formMode === 'edit' ? 'update' : 'add'} inventory item: ${err.response?.data?.error || err.message}`);
+    }
+  };
+
+  const getUnitBadge = (unit) => {
+    switch (unit) {
+      case 'kg':
+        return <span className="px-2.5 py-1 text-xs font-bold rounded-full bg-emerald-100 text-emerald-800">kg (Kilograms)</span>;
+      case 'Liters':
+        return <span className="px-2.5 py-1 text-xs font-bold rounded-full bg-blue-100 text-blue-800">Liters (L)</span>;
+      case 'Packs':
+        return <span className="px-2.5 py-1 text-xs font-bold rounded-full bg-amber-100 text-amber-800">Packs</span>;
+      default:
+        return <span className="px-2.5 py-1 text-xs font-bold rounded-full bg-purple-100 text-purple-800">Count (Plants / Units)</span>;
     }
   };
 
@@ -276,11 +245,6 @@ const InventoryManager = () => {
           <div className="flex justify-between items-center mb-6">
             <h1 className="text-2xl font-bold text-gray-800">
               Inventory Management
-              {userRole === 'Admin' && (
-                <span className="ml-2 text-sm bg-purple-100 text-purple-800 px-2 py-1 rounded-full">
-                  Admin Only
-                </span>
-              )}
             </h1>
           </div>
 
@@ -307,6 +271,7 @@ const InventoryManager = () => {
                   <tr>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Item Name</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quantity</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Unit / Type</th>
                     {userRole === 'Admin' && (
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                     )}
@@ -315,75 +280,100 @@ const InventoryManager = () => {
                 <tbody className="bg-white divide-y divide-gray-200">
                   {/* Add new item row for Admin */}
                   {userRole === 'Admin' && (
-                    <tr className="bg-gray-50">
+                    <tr className="bg-gray-50 border-b-2 border-gray-200">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <input
                           type="text"
                           name="item_name"
                           value={formData.item_name}
                           onChange={handleInputChange}
-                          placeholder="Enter new item name"
-                          className={`w-full border ${formErrors.item_name ? 'border-red-500' : 'border-gray-300'} rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500`}
+                          placeholder="e.g. Agarwood Seedlings / Weedicide"
+                          className={`w-full border ${formErrors.item_name ? 'border-red-500' : 'border-gray-300'} rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500`}
                         />
                         {formErrors.item_name && (
-                          <p className="mt-1 text-sm text-red-600">{formErrors.item_name}</p>
+                          <p className="mt-1 text-xs text-red-600">{formErrors.item_name}</p>
                         )}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <input
                           type="number"
+                          step="any"
                           name="quantity"
                           value={formData.quantity}
                           onChange={handleInputChange}
-                          placeholder="Enter quantity"
+                          placeholder="e.g. 500 or 12.5"
                           min="0"
-                          className={`w-full border ${formErrors.quantity ? 'border-red-500' : 'border-gray-300'} rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500`}
+                          className={`w-full border ${formErrors.quantity ? 'border-red-500' : 'border-gray-300'} rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500`}
                         />
                         {formErrors.quantity && (
-                          <p className="mt-1 text-sm text-red-600">{formErrors.quantity}</p>
+                          <p className="mt-1 text-xs text-red-600">{formErrors.quantity}</p>
                         )}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <select
+                          name="unit_type"
+                          value={formData.unit_type}
+                          onChange={handleInputChange}
+                          className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 bg-white"
+                        >
+                          <option value="Count">Count (Plants / Units)</option>
+                          <option value="kg">kg (Kilograms - Weedicide / Fertilizer)</option>
+                          <option value="Liters">Liters (Liquid)</option>
+                          <option value="Packs">Packs / Bags</option>
+                        </select>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <button
                           onClick={handleSubmit}
-                          disabled={!formData.item_name || !formData.quantity}
-                          className="bg-green-600 text-white p-2 rounded-full hover:bg-green-700 transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                          disabled={!formData.item_name || formData.quantity === ''}
+                          className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1 text-xs font-semibold"
                         >
-                          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                            <path fillRule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clipRule="evenodd" />
-                          </svg>
+                          <span>+ Add Item</span>
                         </button>
                       </td>
                     </tr>
                   )}
 
                   {/* Inventory items */}
-                  {inventory.map((item) => (
-                    <tr key={item.inventory_id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-gray-900">{item.item_name}</div>
+                  {inventory.length === 0 ? (
+                    <tr>
+                      <td colSpan={userRole === 'Admin' ? 4 : 3} className="px-6 py-8 text-center text-gray-500 text-sm">
+                        No inventory items found. Add items above.
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">{item.quantity}</div>
-                      </td>
-                      {userRole === 'Admin' && (
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                          <button
-                            onClick={() => handleEditItem(item)}
-                            className="text-indigo-600 hover:text-indigo-900 mr-3"
-                          >
-                            Edit
-                          </button>
-                          <button
-                            onClick={() => handleDeleteItem(item)}
-                            className="text-red-600 hover:text-red-900"
-                          >
-                            Delete
-                          </button>
-                        </td>
-                      )}
                     </tr>
-                  ))}
+                  ) : (
+                    inventory.map((item) => (
+                      <tr key={item.inventory_id} className="hover:bg-gray-50">
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm font-semibold text-gray-900">{item.item_name}</div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm font-medium text-gray-800">
+                            {item.quantity} <span className="text-xs text-gray-500 font-normal">{item.unit_type || 'Count'}</span>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          {getUnitBadge(item.unit_type)}
+                        </td>
+                        {userRole === 'Admin' && (
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                            <button
+                              onClick={() => handleEditItem(item)}
+                              className="text-indigo-600 hover:text-indigo-900 mr-3 text-xs font-semibold"
+                            >
+                              Edit
+                            </button>
+                            <button
+                              onClick={() => handleDeleteItem(item)}
+                              className="text-red-600 hover:text-red-900 text-xs font-semibold"
+                            >
+                              Delete
+                            </button>
+                          </td>
+                        )}
+                      </tr>
+                    ))
+                  )}
                 </tbody>
               </table>
             </div>
@@ -391,60 +381,79 @@ const InventoryManager = () => {
         </div>
       </main>
 
+      <StaffFooter />
+
       {/* Edit Inventory Modal */}
       {showModal && (
         <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
-            <div className="px-6 py-4 border-b">
-              <h3 className="text-lg font-semibold text-gray-800">
-                Edit Item
+          <div className="bg-white rounded-2xl shadow-xl max-w-md w-full overflow-hidden">
+            <div className="px-6 py-4 bg-gray-50 border-b flex justify-between items-center">
+              <h3 className="text-lg font-bold text-gray-800">
+                Edit Inventory Item
               </h3>
+              <button onClick={() => setShowModal(false)} className="text-gray-400 hover:text-gray-600 font-bold">×</button>
             </div>
             <form onSubmit={handleSubmit}>
               <div className="p-6 space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Item Name</label>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">Item Name</label>
                   <input
                     type="text"
                     name="item_name"
                     value={formData.item_name}
                     onChange={handleInputChange}
-                    className={`w-full border ${formErrors.item_name ? 'border-red-500' : 'border-gray-300'} rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500`}
+                    className={`w-full border ${formErrors.item_name ? 'border-red-500' : 'border-gray-300'} rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500`}
                     required
                   />
                   {formErrors.item_name && (
-                    <p className="mt-1 text-sm text-red-600">{formErrors.item_name}</p>
+                    <p className="mt-1 text-xs text-red-600">{formErrors.item_name}</p>
                   )}
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Quantity</label>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">Quantity</label>
                   <input
                     type="number"
+                    step="any"
                     name="quantity"
                     value={formData.quantity}
                     onChange={handleInputChange}
-                    className={`w-full border ${formErrors.quantity ? 'border-red-500' : 'border-gray-300'} rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500`}
+                    className={`w-full border ${formErrors.quantity ? 'border-red-500' : 'border-gray-300'} rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500`}
                     min="0"
                     required
                   />
                   {formErrors.quantity && (
-                    <p className="mt-1 text-sm text-red-600">{formErrors.quantity}</p>
+                    <p className="mt-1 text-xs text-red-600">{formErrors.quantity}</p>
                   )}
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">Unit / Quantity Type</label>
+                  <select
+                    name="unit_type"
+                    value={formData.unit_type}
+                    onChange={handleInputChange}
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 bg-white"
+                  >
+                    <option value="Count">Count (Plants / Units)</option>
+                    <option value="kg">kg (Kilograms - Weedicide / Fertilizer)</option>
+                    <option value="Liters">Liters (Liquid)</option>
+                    <option value="Packs">Packs / Bags</option>
+                  </select>
                 </div>
               </div>
 
-              <div className="px-6 py-4 bg-gray-50 flex justify-end space-x-3 rounded-b-lg">
+              <div className="px-6 py-4 bg-gray-50 flex justify-end space-x-3 border-t">
                 <button
                   type="button"
                   onClick={() => setShowModal(false)}
-                  className="bg-white text-gray-700 px-4 py-2 rounded-md border border-gray-300 hover:bg-gray-50 transition duration-200"
+                  className="bg-white text-gray-700 px-4 py-2 rounded-lg text-sm border border-gray-300 hover:bg-gray-100 transition"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition duration-200"
+                  className="bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-green-700 transition"
                 >
                   Save Changes
                 </button>
@@ -454,30 +463,24 @@ const InventoryManager = () => {
         </div>
       )}
 
-      {/* Delete Confirmation Modal */}
+      {/* Delete Confirmation Dialog */}
       {showDeleteConfirm && (
         <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
-            <div className="px-6 py-4 border-b">
-              <h3 className="text-lg font-semibold text-gray-800">Confirm Delete</h3>
-            </div>
-
-            <div className="p-6">
-              <p className="text-gray-700">
-                Are you sure you want to delete <span className="font-semibold">{selectedItem?.item_name}</span>? This action cannot be undone.
-              </p>
-            </div>
-
-            <div className="px-6 py-4 bg-gray-50 flex justify-end space-x-3 rounded-b-lg">
+          <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6">
+            <h3 className="text-lg font-bold text-gray-800 mb-2">Confirm Delete</h3>
+            <p className="text-sm text-gray-600 mb-6">
+              Are you sure you want to delete <strong className="text-gray-900">{selectedItem?.item_name}</strong>? This action cannot be undone.
+            </p>
+            <div className="flex justify-end space-x-3">
               <button
                 onClick={() => setShowDeleteConfirm(false)}
-                className="bg-white text-gray-700 px-4 py-2 rounded-md border border-gray-300 hover:bg-gray-50 transition duration-200"
+                className="px-4 py-2 border border-gray-300 rounded-lg text-sm text-gray-700 hover:bg-gray-50"
               >
                 Cancel
               </button>
               <button
                 onClick={confirmDelete}
-                className="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition duration-200"
+                className="px-4 py-2 bg-red-600 rounded-lg text-sm text-white hover:bg-red-700 shadow-sm"
               >
                 Delete
               </button>
@@ -485,8 +488,6 @@ const InventoryManager = () => {
           </div>
         </div>
       )}
-
-      <StaffFooter />
     </div>
   );
 };

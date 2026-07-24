@@ -1,6 +1,5 @@
 const { DataTypes } = require("sequelize");
 const sequelize = require("../config/db");
-const Customer = require("./Customer");
 
 const Request = sequelize.define(
   "request",
@@ -13,23 +12,28 @@ const Request = sequelize.define(
     customer_id: {
       type: DataTypes.INTEGER,
       allowNull: false,
-      references: { model: Customer, key: "customer_id" },
+    },
+    request_type: {
+      type: DataTypes.STRING(50),
+      defaultValue: "Inquiry",
     },
     request_details: {
       type: DataTypes.TEXT,
-      allowNull: false
+      allowNull: false,
+    },
+    status: {
+      type: DataTypes.STRING(20),
+      defaultValue: "Pending",
     },
     request_date: {
       type: DataTypes.DATE,
-      defaultValue: DataTypes.NOW
-    }
+      defaultValue: DataTypes.NOW,
+    },
   },
   {
     timestamps: false,
-    tableName: 'request'
+    tableName: "request",
   }
 );
-
-Request.belongsTo(Customer, { foreignKey: "customer_id", onDelete: "CASCADE" });
 
 module.exports = Request;

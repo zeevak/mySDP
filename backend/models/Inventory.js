@@ -12,12 +12,17 @@ const Inventory = sequelize.define(
     item_name: {
       type: DataTypes.STRING(255),
       allowNull: false,
-      defaultValue: 'Unknown Plant'
+      defaultValue: 'Unknown Item'
     },
     quantity: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.FLOAT,
       allowNull: false,
       defaultValue: 0
+    },
+    unit_type: {
+      type: DataTypes.STRING(20),
+      allowNull: false,
+      defaultValue: 'Count'
     }
   },
   {

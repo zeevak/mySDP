@@ -10,6 +10,7 @@ import ContactPage from './Pages/Visitor/ContactPage';
 import CustomerLogin from './Pages/Customer/CustomerLogin';
 import CustomerDashBoard from './Pages/Customer/CustomerDashBoard';
 import NewInvestmentPage from './Pages/Customer/NewInvestmentPage';
+import MakeRequestPage from './Pages/Customer/MakeRequestPage';
 import LandCheckPage from './Pages/Visitor/LandCheckPage';
 import ResultsCalculation from './Pages/Visitor/ResultsCalculation';
 
@@ -20,9 +21,13 @@ import Sandalwood from './Pages/Visitor/Products/Sandalwood';
 import Tea from './Pages/Visitor/Products/Tea';
 import Vanilla from './Pages/Visitor/Products/Vanilla';
 
+import ScrollToTop from './Components/ScrollToTop';
+
 function App() {
   return (
-    <Routes>
+    <>
+      <ScrollToTop />
+      <Routes>
       <Route path="/" element={<HomePage />} />
       <Route path="/home" element={<HomePage />} />
       <Route path="/projects" element={<ProjectsPage />} />
@@ -31,6 +36,8 @@ function App() {
       <Route path="/customer/login" element={<CustomerLogin />} />
       <Route path="/customer/CustomerDashBoard" element={<CustomerDashBoard />} />
       <Route path="/customer/new-investment" element={<NewInvestmentPage />} />
+      <Route path="/customer/make-request" element={<MakeRequestPage />} />
+      <Route path="/customer/contact-advisor" element={<MakeRequestPage />} />
       <Route path="/try-agarwood" element={<LandCheckPage />} />
       <Route path="/try-agarwood/results/:landSize" element={<ResultsCalculation />} />
 
@@ -44,6 +51,7 @@ function App() {
       {/* Investment Routes */}
       <Route path="/investment" element={<HomePage />} />
     </Routes>
+  </>
   );
 }
 

@@ -33,7 +33,7 @@ const AdminDashboard = () => {
         } else {
           setLoading(true);
         }
-        
+
         const token = localStorage.getItem('token');
 
         // Fetch dashboard statistics
@@ -295,15 +295,15 @@ const AdminDashboard = () => {
                 <div className="space-y-4">
                   <div className="flex items-center justify-between bg-gray-50 p-4 rounded-lg">
                     <div>
-                      <p className="text-sm text-gray-500">Unread Messages</p>
+                      <p className="text-sm text-gray-500">Visitor Messages</p>
                       <p className="text-2xl font-bold text-gray-700">{stats.messages}</p>
                     </div>
-                    <button
-                      onClick={() => setShowMessagesPopup(true)}
+                    <Link
+                      to="/staff/requests?tab=messages"
                       className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm hover:bg-green-200 transition"
                     >
                       View All
-                    </button>
+                    </Link>
                   </div>
                   <div className="flex items-center justify-between bg-gray-50 p-4 rounded-lg">
                     <div>
@@ -311,7 +311,7 @@ const AdminDashboard = () => {
                       <p className="text-2xl font-bold text-gray-700">{stats.requests}</p>
                     </div>
                     <Link
-                      to="/staff/requests"
+                      to="/staff/requests?tab=requests"
                       className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm hover:bg-green-200 transition"
                     >
                       View All
@@ -444,9 +444,8 @@ const AdminDashboard = () => {
                   {messages.map((message) => (
                     <div
                       key={message.message_id}
-                      className={`bg-white rounded-lg border overflow-hidden transition-all duration-300 ${
-                        !message.is_read ? 'border-l-4 border-green-500' : 'border-gray-200'
-                      }`}
+                      className={`bg-white rounded-lg border overflow-hidden transition-all duration-300 ${!message.is_read ? 'border-l-4 border-green-500' : 'border-gray-200'
+                        }`}
                     >
                       {/* Message Header - Always visible */}
                       <div

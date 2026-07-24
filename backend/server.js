@@ -9,6 +9,8 @@ console.log("Server starting...");
 
 const path = require("path");
 const CustomerDocument = require("./models/CustomerDocument");
+const Request = require("./models/Request");
+const Inventory = require("./models/Inventory");
 
 const app = express();
 const server = http.createServer(app);
@@ -20,8 +22,10 @@ app.use(express.json());
 // Serve static uploads
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
-// Sync CustomerDocument table if needed
+// Sync CustomerDocument, Request, and Inventory tables if needed
 CustomerDocument.sync().catch(err => console.error("CustomerDocument sync error:", err));
+Request.sync({ alter: true }).catch(err => console.error("Request sync error:", err));
+Inventory.sync({ alter: true }).catch(err => console.error("Inventory sync error:", err));
 
 app.use("/api/customer", require("./routes/customerRoutes"));
 app.use("/api/staff", require("./routes/staffRoutes"));
@@ -36,6 +40,7 @@ app.use("/api/shipment", require("./routes/shipmentRoutes"));
 app.use("/api/dashboard", require("./routes/dashboardRoutes"));
 app.use("/api/staff/customers", require("./routes/staffCustomerRoutes"));
 app.use("/api/staff/lands", require("./routes/staffLandRoutes"));
+app.use("/api/requests", require("./routes/requestRoutes"));
 
 io.on("connection", (socket) => {
   console.log("User connected");

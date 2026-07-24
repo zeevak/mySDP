@@ -22,6 +22,7 @@ import ProjectsPage from './Pages/Staff/ProjectsPage';
 import ProjectDetails from './Pages/Staff/ProjectDetails';
 import DashboardRedirect from './Components/DashboardRedirect';
 import CustomerDetails from './Pages/Staff/CustomerDetails';
+import ScrollToTop from './Components/ScrollToTop';
 
 // Protected route component
 const ProtectedRoute = ({ element, allowedRoles }) => {
@@ -42,6 +43,7 @@ const ProtectedRoute = ({ element, allowedRoles }) => {
 function App() {
   return (
     <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+      <ScrollToTop />
       <Routes>
         {/* Public routes */}
         <Route path="/login" element={<Login />} />
@@ -96,6 +98,10 @@ function App() {
         />
         <Route
           path="/staff/messages"
+          element={<ProtectedRoute element={<MessagesPage />} allowedRoles={['Staff', 'Admin']} />}
+        />
+        <Route
+          path="/staff/requests"
           element={<ProtectedRoute element={<MessagesPage />} allowedRoles={['Staff', 'Admin']} />}
         />
         <Route

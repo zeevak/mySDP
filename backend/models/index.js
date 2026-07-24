@@ -55,6 +55,10 @@ ProjectProgress.belongsTo(Staff, { foreignKey: 'staff_id' });
 Customer.hasMany(Proposal, { foreignKey: 'customer_id' });
 Proposal.belongsTo(Customer, { foreignKey: 'customer_id' });
 
+// Customer - Request relationship
+Customer.hasMany(Request, { foreignKey: 'customer_id' });
+Request.belongsTo(Customer, { foreignKey: 'customer_id' });
+
 // CustomerLand - Proposal relationship
 CustomerLand.hasMany(Proposal, { foreignKey: 'customer_land_id' });
 Proposal.belongsTo(CustomerLand, { foreignKey: 'customer_land_id' });

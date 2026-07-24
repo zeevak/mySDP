@@ -58,11 +58,11 @@ const inventoryController = {
 
   createInventory: async (req, res) => {
     console.log('Create inventory request body:', req.body);
-    const { item_name, quantity } = req.body;
+    const { item_name, quantity, unit_type } = req.body;
 
     try {
       // Validate required fields
-      if (!item_name || !quantity) {
+      if (!item_name || quantity === undefined || quantity === null) {
         return res.status(400).json({
           success: false,
           error: 'Please provide item name and quantity'
@@ -78,12 +78,15 @@ const inventoryController = {
       }
 
       // Validate quantity (must be a positive number)
-      if (isNaN(quantity) || parseInt(quantity) <= 0) {
+      const numQuantity = parseFloat(quantity);
+      if (isNaN(numQuantity) || numQuantity <= 0) {
         return res.status(400).json({
           success: false,
           error: 'Quantity must be a positive number'
         });
       }
+
+      const itemUnitType = unit_type || 'Count';
 
       // Check if item already exists
       const existingItem = await Inventory.findOne({
@@ -96,12 +99,13 @@ const inventoryController = {
 
       if (existingItem) {
         // Update quantity instead of creating new item
-        existingItem.quantity += parseInt(quantity);
+        existingItem.quantity += numQuantity;
+        if (unit_type) existingItem.unit_type = itemUnitType;
         await existingItem.save();
 
         return res.status(200).json({
           success: true,
-          message: `Added ${quantity} units to existing ${item_name}`,
+          message: `Added ${numQuantity} ${itemUnitType} to existing ${item_name}`,
           data: existingItem
         });
       }
@@ -109,12 +113,13 @@ const inventoryController = {
       // Create new inventory item
       const newItem = await Inventory.create({
         item_name: item_name.trim(),
-        quantity: parseInt(quantity)
+        quantity: numQuantity,
+        unit_type: itemUnitType
       });
 
       res.status(201).json({
         success: true,
-        message: 'Plant added to inventory successfully',
+        message: 'Item added to inventory successfully',
         data: newItem
       });
     } catch (err) {
@@ -129,7 +134,7 @@ const inventoryController = {
   updateInventory: async (req, res) => {
     const { id } = req.params;
     console.log('Update inventory request body:', req.body);
-    const { item_name, quantity } = req.body;
+    const { item_name, quantity, unit_type } = req.body;
 
     try {
       // Find the inventory item
@@ -150,12 +155,16 @@ const inventoryController = {
         });
       }
 
-      // Validate quantity if provided (must be a positive number)
-      if (quantity !== undefined && (isNaN(quantity) || parseInt(quantity) < 0)) {
-        return res.status(400).json({
-          success: false,
-          error: 'Quantity must be a non-negative number'
-        });
+      // Validate quantity if provided (must be a non-negative number)
+      let numQuantity = inventoryItem.quantity;
+      if (quantity !== undefined && quantity !== null) {
+        numQuantity = parseFloat(quantity);
+        if (isNaN(numQuantity) || numQuantity < 0) {
+          return res.status(400).json({
+            success: false,
+            error: 'Quantity must be a non-negative number'
+          });
+        }
       }
 
       // Check if item name is being changed and already exists
@@ -180,8 +189,9 @@ const inventoryController = {
       }
 
       // Update the inventory item
-      inventoryItem.item_name = item_name || inventoryItem.item_name;
-      inventoryItem.quantity = quantity !== undefined ? parseInt(quantity) : inventoryItem.quantity;
+      inventoryItem.item_name = item_name ? item_name.trim() : inventoryItem.item_name;
+      inventoryItem.quantity = numQuantity;
+      if (unit_type) inventoryItem.unit_type = unit_type;
 
       await inventoryItem.save();
 

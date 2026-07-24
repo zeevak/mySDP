@@ -1460,7 +1460,7 @@ const CustomerDashboard = () => {
                 <h2 className="text-lg font-bold text-green-800 mb-4">Quick Actions</h2>
                 <div className="space-y-3">
                   <a href="/customer/new-investment" className="block w-full text-center px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition duration-300">New Investment</a>
-                  <a href="/customer/contact-advisor" className="block w-full text-center px-4 py-2 border border-green-600 text-green-600 rounded-md hover:bg-green-50 transition duration-300">Contact Advisor</a>
+                  <a href="/customer/make-request" className="block w-full text-center px-4 py-2 border border-green-600 text-green-600 rounded-md hover:bg-green-50 transition duration-300">Make a Request</a>
                   <button
                     onClick={() => setActiveTab('documents')}
                     className="block w-full text-center px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition duration-300 font-medium text-sm"
